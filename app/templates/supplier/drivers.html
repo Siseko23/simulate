@@ -1,0 +1,106 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="stack page-space">
+  <div class="topbar">
+    <div>
+      <p class="eyebrow">Supplier portal</p>
+      <h1>Driver management</h1>
+      <p class="topbar-copy">Add drivers and generate their login credentials for the driver platform. Drivers are managed separately from vehicles. Assign the driver and vehicle together only when dispatching a specific job.</p>
+    </div>
+  </div>
+
+  <div class="grid two-up">
+    <section class="panel">
+      <div class="panel-head"><h2>Add new driver</h2>
+        <p>Create a driver account. The driver receives a PIN for the driver platform; jobs and vehicles are assigned later per booking from Dispatch.</p>
+      </div>
+      <form method="POST" action="{{ url_for('supplier.add_driver') }}">
+        <div class="form-grid compact-two">
+          <label>Full name<input name="name" placeholder="e.g. Sipho Dlamini" required/></label>
+          <label>SA ID number<input name="id_number" placeholder="13-digit ID number" required/></label>
+          <label>Phone number<input name="phone" placeholder="+27 8x xxx xxxx" required/></label>
+          <label>Email (optional)<input name="email" type="email" placeholder="driver@email.com"/></label>
+          <label>License number<input name="licenseNo" placeholder="e.g. KZN-2891-A" required/></label>
+          <label>License type
+            <select name="license_code">
+              <option>Code 14 (EC) - Articulated</option>
+              <option>Code 10 (C) - Rigid truck</option>
+              <option>Code 8 (B) - Light motor vehicle</option>
+            </select>
+          </label>
+          <label>License expiry date<input name="license_expiry" type="date" required/></label>
+          <label class="form-span">Driver login PIN (4 digits)
+            <input name="pin" type="password" maxlength="4" minlength="4" placeholder="4-digit PIN the driver will use to log in" required/>
+          </label>
+        </div>
+
+        <div style="background:rgba(255,200,0,.08);border:1.5px solid rgba(255,200,0,.4);border-radius:14px;padding:.85rem;margin:.6rem 0">
+          <p style="margin:0 0 .6rem;font-weight:700;font-size:.88rem">Shield Vetting &amp; Compliance</p>
+          <div class="form-grid compact-two">
+            <label>Criminal clearance date<input name="criminal_clearance_date" type="date"/></label>
+            <label>Criminal clearance status
+              <select name="criminal_clearance_status">
+                <option value="Pending">Pending</option>
+                <option value="Cleared">Cleared</option>
+                <option value="Failed">Failed</option>
+              </select>
+            </label>
+            <label>PDP (Prof. Driving Permit) expiry<input name="pdp_expiry" type="date"/></label>
+            <label>Vetting status
+              <select name="vetting_status">
+                <option value="Pending">Pending</option>
+                <option value="Vetted">Vetted OK</option>
+                <option value="Rejected">Rejected</option>
+              </select>
+            </label>
+          </div>
+          <p style="margin:.4rem 0 0;font-size:.8rem;color:var(--muted)">Vetting status is visible to shippers on every booking confirmation. Vetted drivers increase shipper confidence and platform ranking.</p>
+        </div>
+
+        <div style="background:rgba(21,95,160,.07);border-radius:14px;padding:.85rem;margin:.6rem 0;border:1px solid rgba(21,95,160,.15)">
+          <p style="margin:0;font-size:.85rem"><strong>Key How driver login works:</strong> The driver uses their phone number + this PIN to log into the driver platform. Vehicle and shipment details are pushed to them only after a supplier dispatches a specific job. Share the PIN securely with the driver - it can be changed from this page at any time.</p>
+        </div>
+        <button type="submit" class="primary-button wide-button">Create driver account</button>
+      </form>
+    </section>
+
+    <section class="panel">
+      <div class="panel-head"><h2>Your drivers</h2></div>
+      <div class="table-like">
+        {% for d in drivers %}
+        <div class="table-row" style="flex-wrap:wrap;gap:.6rem">
+          <div style="flex:1;min-width:140px">
+            <strong>{{ d.name }}</strong>
+            <p class="muted" style="font-size:.82rem;margin:.2rem 0 0">{{ d.phone }}</p>
+            <p style="font-size:.78rem;margin:.1rem 0 0;color:var(--accent)">{{ d.licenseType }}</p>
+          </div>
+          <div style="flex:1;min-width:220px">
+            <p style="margin:0;font-size:.82rem;color:var(--muted)">Dispatch model</p>
+            <p style="font-size:.86rem;margin:.25rem 0 0;color:var(--accent);font-weight:700">Driver assigned per job</p>
+            <p style="font-size:.78rem;margin:.15rem 0 0;color:var(--muted)">Choose this driver with any available eligible vehicle on the Dispatch board.</p>
+            <p style="font-size:.78rem;margin:.35rem 0 0;
+              color:{% if d.licenseExpiry and d.licenseExpiry < '2026-07-01' %}var(--red){% else %}var(--muted){% endif %}">
+              Lic expires: {{ d.licenseExpiry }}
+            </p>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:.4rem;align-items:flex-end">
+            <span class="pill {% if d.status=='Active' %}badge{% endif %}"
+              style="{% if d.status=='License Expiring' %}background:rgba(255,200,0,.18);color:#7a5800{% endif %}">
+              {{ d.status }}
+            </span>
+            <span style="font-size:.75rem;font-weight:700;padding:.2rem .6rem;border-radius:999px;
+              background:{% if d.vettingStatus=='Vetted' %}rgba(47,108,87,.12){% elif d.vettingStatus=='Rejected' %}rgba(192,57,43,.1){% else %}rgba(255,200,0,.15){% endif %};
+              color:{% if d.vettingStatus=='Vetted' %}var(--green){% elif d.vettingStatus=='Rejected' %}var(--red){% else %}#7a5800{% endif %}">
+              {% if d.vettingStatus=='Vetted' %}OK {% elif d.vettingStatus=='Rejected' %}X {% else %}Pending {% endif %}{{ d.vettingStatus or 'Pending' }}
+            </span>
+            <form method="POST" action="{{ url_for('supplier.reset_driver_pin', driver_id=d.id) }}" style="display:inline">
+              <button type="submit" class="ghost-button" style="padding:.35rem .8rem;font-size:.78rem">Reset PIN</button>
+            </form>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+    </section>
+  </div>
+</div>
+{% endblock %}

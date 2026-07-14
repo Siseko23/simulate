@@ -1,0 +1,9 @@
+{
+  "name": "FreightFlow Driver",
+  "short_name": "FF Driver",
+  "start_url": "/driver/app",
+  "display": "standalone",
+  "background_color": "#f6f8fb",
+  "theme_color": "#c1121f",
+  "icons": []
+}

@@ -1,0 +1,77 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="stack page-space">
+  <div class="topbar">
+    <div>
+      <p class="eyebrow">Admin - Finance</p>
+      <h1>Supplier payouts</h1>
+      <p class="topbar-copy">Review delivered bookings, then release payment to the supplier's registered bank account.</p>
+    </div>
+  </div>
+
+  <div class="stats-grid">
+    <article class="stat-card">
+      <p class="stat-label">Total pending payout</p>
+      <strong style="color:var(--accent)">R {{ '{:,.0f}'.format(total_pending) }}</strong>
+      <p class="muted">Across {{ owed|length }} supplier{{ 's' if owed|length != 1 else '' }}</p>
+    </article>
+    <article class="stat-card">
+      <p class="stat-label">Already paid</p>
+      <strong style="color:var(--green)">R {{ '{:,.0f}'.format(history|sum(attribute='amount')) }}</strong>
+      <p class="muted">{{ history|length }} payout{{ 's' if history|length != 1 else '' }} on record</p>
+    </article>
+  </div>
+
+  <section class="panel">
+    <div class="panel-head"><h2>Payout queue</h2><p>Delivered bookings pending payment.</p></div>
+
+    {% for o in owed %}
+    <div style="margin-bottom:1rem;border:1px solid var(--line);border-radius:18px;padding:1rem 1.2rem;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:1rem">
+      <div>
+        <strong style="font-size:1rem">{{ o.supplier.company_name }}</strong>
+        <p class="muted" style="font-size:.82rem;margin:.2rem 0 0">{{ o.supplier.base_city or '-' }} - {{ o.bookings_count }} delivered booking{{ 's' if o.bookings_count != 1 else '' }}</p>
+        {% if o.banking_complete %}
+        <p style="font-size:.78rem;color:var(--green);margin:.2rem 0 0">OK {{ o.supplier.bank_name }} ---{{ o.supplier.bank_account[-4:] if o.supplier.bank_account else '' }}</p>
+        {% else %}
+        <p style="font-size:.78rem;color:var(--red);margin:.2rem 0 0">Warning No bank details on file</p>
+        {% endif %}
+      </div>
+      <div style="text-align:right">
+        <p style="margin:0;font-size:1.15rem;font-weight:700;color:var(--accent)">R {{ '{:,.0f}'.format(o.amount) }}</p>
+        <form method="POST" action="{{ url_for('admin.pay_supplier', supplier_id=o.supplier.id) }}" style="margin-top:.5rem" onsubmit="return confirm('Pay R{{ '{:,.0f}'.format(o.amount) }} to {{ o.supplier.company_name }}?')">
+          <button type="submit" class="primary-button" style="font-size:.85rem;padding:.5rem 1.1rem" {% if not o.banking_complete %}disabled title="Banking details incomplete"{% endif %}>
+            Pay supplier →
+          </button>
+        </form>
+      </div>
+    </div>
+    {% else %}
+    <div class="empty-card" style="padding:2rem;text-align:center">
+      <p class="muted">No completed bookings awaiting payout.</p>
+    </div>
+    {% endfor %}
+  </section>
+
+  <section class="panel">
+    <div class="panel-head"><h2>Payment history</h2></div>
+    <div class="table-like">
+      {% for p in history %}
+      <div class="table-row">
+        <div>
+          <strong>{{ p.supplier.company_name }}</strong>
+          <p class="muted" style="margin:.2rem 0 0;font-size:.82rem">{{ p.paid_at.strftime('%d %b %Y') if p.paid_at else '-' }}</p>
+        </div>
+        <div>
+          <p>{{ p.bookings_count }} booking{{ 's' if p.bookings_count != 1 else '' }}</p>
+          <p class="muted" style="font-size:.82rem">{{ p.bank_summary }}</p>
+        </div>
+        <strong style="color:var(--green)">R {{ '{:,.0f}'.format(p.amount) }}</strong>
+        <span class="badge">Paid</span>
+      </div>
+      {% else %}
+      <p class="muted" style="text-align:center;padding:.8rem">No payment history yet.</p>
+      {% endfor %}
+    </div>
+  </section>
+</div>
+{% endblock %}

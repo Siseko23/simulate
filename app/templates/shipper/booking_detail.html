@@ -1,0 +1,87 @@
+{% extends "base.html" %}
+{% block content %}
+{% set status = booking.displayStatus or booking.status %}
+{% set steps = ['Quotes Received','Awaiting Payment','Accepted by Supplier','Driver Assigned','Collected','In Transit','Delivered'] %}
+{% set current = status if status in steps else ('Accepted by Supplier' if booking.status == 'Pending Dispatch' else booking.status) %}
+<div class="ff2-page">
+  <section class="ff2-hero">
+    <div class="ff2-hero-grid">
+      <div><span class="ff2-kicker">Booking detail</span><h1 class="ff2-title">{{ booking.ref }} <span>{{ status }}</span></h1><p class="ff2-copy">Everything the shipper needs in one view: supplier, driver, vehicle, label, waybill, tracking, POD and invoice readiness.</p><div class="ff2-action-row"><a class="ghost-button" href="{{ url_for('shipper.bookings') }}">← Bookings</a><a class="ghost-button" href="{{ url_for('shipper.shipment_documents', ref=booking.ref) }}">Documents</a>{% if booking.waybillGenerated %}<a class="primary-button" href="{{ url_for('shipper.waybill', ref=booking.ref) }}">View waybill</a>{% endif %}</div></div>
+      <div class="ff2-visual-card"><img src="{{ url_for('static', filename='img/ffn-warehouse-hero.png') }}" alt="Booking"></div>
+    </div>
+  </section>
+
+  <div class="ff2-record-layout">
+    <main class="ff2-stack">
+      
+      {% if booking.status == 'Quotes Received' and quotes %}
+      <section class="panel quote-selection-panel" id="supplier-quotes">
+        <div class="ff2-section-title">
+          <div>
+            <span class="ff2-kicker">Step 2 - Choose supplier quote</span>
+            <h2>Quotes received</h2>
+            <p>Select one supplier quote before payment, supplier acceptance, dispatch, waybill or delivery can continue.</p>
+          </div>
+          <span class="badge">{{ quotes|length }} options</span>
+        </div>
+        <div class="quote-choice-grid">
+          {% for q in quotes %}
+          <article class="quote-choice-card {{ 'best' if q.rank == 1 else '' }}">
+            <div class="quote-choice-top">
+              <div>
+                <span class="quote-rank">Rank {{ q.rank }}</span>
+                <h3>{{ q.supplier }}</h3>
+                <p>{{ q.transitDays }} day transit - {{ q.onTimeRate }}% on-time - Score {{ q.supplierScore }}</p>
+              </div>
+              <strong>{{ zar(q.amount) }}</strong>
+            </div>
+            <div class="quote-choice-metrics">
+              <span>AI score {{ '%.0f'|format(q.aiScore) }}</span>
+              <span>Save {{ zar(q.savingVsBroker) }}</span>
+              <span>{{ q.supplierTotalJobs }} jobs</span>
+            </div>
+            <ul class="quote-reasons">
+              {% for reason in q.reasons[:3] %}<li>{{ reason }}</li>{% endfor %}
+            </ul>
+            <form method="post" action="{{ url_for('shipper.accept_quote', ref=booking.ref, quote_id=q.id) }}">
+              <button class="primary-button wide-button" type="submit">Select this quote</button>
+            </form>
+          </article>
+          {% endfor %}
+        </div>
+      </section>
+      {% elif booking.status == 'Quotes Received' %}
+      <section class="panel">
+        <div class="ff2-section-title"><div><h2>No supplier quotes found</h2><p>This booking is waiting for supplier quotes. Refresh or contact support if this remains empty.</p></div></div>
+      </section>
+      {% endif %}
+
+      <section class="panel"><div class="ff2-section-title"><div><h2>Shipment workflow</h2><p>Clear operational progress from quote to delivery.</p></div><span class="badge">{{ booking.supplierResponseWindow }}</span></div><div class="ff2-timeline">{% for s in steps %}{% set done = (s == current) or (steps.index(s) < steps.index(current) if current in steps else False) %}<div class="ff2-step {{ 'done' if done else '' }}"><i></i><strong>{{ s }}</strong><span>{{ 'Done' if done else 'Pending' }}</span></div>{% endfor %}</div></section>
+      <section class="panel"><div class="ff2-section-title"><div><h2>Shipment information</h2><p>Route, cargo and contact details.</p></div></div><div class="ff2-grid-3"><div class="ff2-driver-card"><div class="ff2-avatar">A</div><div><strong>Pickup</strong><span>{{ booking.collectionAddress or booking.collectionCity }} - {{ booking.collectionContact }} {{ booking.collectionPhone }}</span></div></div><div class="ff2-driver-card"><div class="ff2-avatar">B</div><div><strong>Delivery</strong><span>{{ booking.deliveryAddress or booking.deliveryCity }} - {{ booking.deliveryContact }} {{ booking.deliveryPhone }}</span></div></div><div class="ff2-driver-card"><div class="ff2-avatar">KG</div><div><strong>{{ booking.pieces }} pallets - {{ booking.totalWeight|round(0)|int }}kg</strong><span>{{ booking.commodity }} - {{ booking.vehicleType }} - {{ 'Fragile' if booking.isFragile else 'Standard handling' }}</span></div></div></div></section>
+      <section class="panel"><div class="ff2-section-title"><div><h2>Live tracking preview</h2><p>Driver pin appears after dispatch.</p></div></div><div class="ffn-sa-map-shell large" data-origin="{{ booking.collectionCity or booking.collectionAddress or 'Johannesburg, GP' }}" data-destination="{{ booking.deliveryCity or booking.deliveryAddress or 'Durban, KZN' }}" data-current="{{ booking.currentCity or 'Pietermaritzburg' }}" data-status="{{ status }}" data-summary="{{ booking.collectionCity }} to {{ booking.deliveryCity }} - live South African route preview">
+          <div class="ffn-sa-map"></div>
+        </div></section>
+      <section class="panel"><div class="ff2-section-title"><div><h2>Events</h2><p>Status updates from supplier and driver scans.</p></div></div><div class="ff2-stack">{% for e in booking.statusEvents|reverse %}<div class="ff2-driver-card"><div class="ff2-avatar">OK</div><div><strong>{{ e.status }}</strong><span>{{ e.note or 'Status updated' }} - {{ e.time }}</span></div></div>{% else %}<div class="empty-card">No timeline events yet.</div>{% endfor %}</div></section>
+    </main>
+    <aside class="ff2-stack">
+      <section class="panel"><div class="ff2-section-title"><div><h2>Supplier</h2></div></div><div class="ff2-driver-card"><div class="ff2-avatar">S</div><div><strong>{{ booking.supplier }}</strong><span>Score {{ booking.supplierScore or '-' }} - On-time {{ booking.supplierOnTimeRate or '-' }}%</span></div></div></section>
+      <section class="panel"><div class="ff2-section-title"><div><h2>Driver & vehicle</h2><p>Visible once supplier dispatches.</p></div></div><div class="ff2-driver-card"><div class="ff2-avatar">{{ booking.driverName[0] if booking.driverName and booking.driverName != '-' else 'D' }}</div><div><strong>{{ booking.driverName }}</strong><span>{{ booking.driverPhone or 'Phone pending' }} - {{ booking.vehicleReg }} - Licence {{ booking.driverLicenseCode or '-' }}</span></div></div></section>
+      <section class="panel"><div class="ff2-section-title"><div><h2>Location access</h2><p>Request live driver location for sensitive or high-value cargo.</p></div></div>
+        <div class="ff2-driver-card"><div class="ff2-avatar">GPS</div><div><strong>{{ booking.locationAccessStatus }}</strong><span>{{ booking.locationAccessReason or 'Milestone tracking is available by default.' }}</span></div></div>
+        {% if booking.status in ['Driver Assigned','Collected','In Transit','Approaching Destination'] and booking.locationAccessStatus not in ['Pending','Approved'] %}
+        <form method="post" action="{{ url_for('shipper.request_driver_location', ref=booking.ref) }}" style="margin-top:.8rem;display:grid;gap:.6rem">
+          <input name="reason" placeholder="Reason: high-value, fragile, cold chain, urgent slot"/>
+          <button class="ghost-button wide-button" type="submit">Request live driver location</button>
+        </form>
+        {% endif %}
+      </section>
+      <section class="panel"><div class="ff2-section-title"><div><h2>Waybill & label</h2><p>Printable operational documents.</p></div></div><div class="ff2-job-card" style="grid-template-columns:1fr auto"><div><strong>{{ booking.ref }}</strong><p>{{ booking.collectionCity }} → {{ booking.deliveryCity }} - {{ booking.pieces }} pallets - {{ booking.totalWeight|round(0)|int }}kg</p><div class="ff2-tags"><span>QR label</span><span>{{ 'Waybill ready' if booking.waybillGenerated else 'Awaiting supplier acceptance' }}</span></div></div><div class="qr"></div></div><div class="ff2-action-row"><a class="ghost-button" href="{{ url_for('shipper.shipment_label', ref=booking.ref) }}">Print label</a>{% if booking.waybillGenerated %}<a class="primary-button" href="{{ url_for('shipper.waybill', ref=booking.ref) }}">View waybill</a>{% endif %}</div></section>
+      <section class="panel"><div class="ff2-section-title"><div><h2>POD proof</h2></div></div>{% if booking.podPhotoUrl %}<a class="primary-button wide-button" href="{{ booking.podPhotoUrl }}" target="_blank">View POD photo</a>{% elif booking.podSigned %}<div class="ff2-driver-card"><div class="ff2-avatar">OK</div><div><strong>POD signed</strong><span>{{ booking.podSignedAt }}</span></div></div>{% else %}<div class="empty-card">POD appears after delivery confirmation.</div>{% endif %}</section>
+    </aside>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+{% if google_maps_key %}<script src="https://maps.googleapis.com/maps/api/js?key={{ google_maps_key }}&v=weekly&callback=initFfnSaMaps" async defer></script>{% endif %}
+{% endblock %}

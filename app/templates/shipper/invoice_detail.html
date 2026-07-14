@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="stack page-space">
+  <div class="topbar">
+    <div>
+      <p class="eyebrow">Shipper portal</p>
+      <h1>Invoice {{ invoice.invoice_number }}</h1>
+      <p class="topbar-copy">Booking {{ booking.ref }} - {{ booking.route }}</p>
+    </div>
+    <div style="display:flex;gap:.6rem;flex-wrap:wrap">
+      <a class="ghost-button" href="{{ url_for('shipper.invoices') }}">← Back to payments</a>
+      <a class="primary-button" href="{{ url_for('shipper.download_invoice', invoice_id=invoice.id) }}">Download invoice</a>
+    </div>
+  </div>
+
+  <section class="panel" style="max-width:860px;margin:auto">
+    <div style="display:flex;justify-content:space-between;gap:1rem;flex-wrap:wrap;border-bottom:1px solid var(--line);padding-bottom:1rem;margin-bottom:1rem">
+      <div>
+        <p class="eyebrow">FreightFlow Nexus</p>
+        <h2 style="margin:.2rem 0">Tax Invoice</h2>
+        <p class="muted">Platform payment is made to FreightFlow. Supplier payout is released after POD and invoice verification.</p>
+      </div>
+      <div style="text-align:right">
+        <strong>{{ invoice.invoice_number }}</strong><br>
+        <span class="pill {% if invoice.status == 'Paid' %}badge{% endif %}">{{ invoice.status }}</span>
+      </div>
+    </div>
+
+    <div class="grid two-up" style="margin-bottom:1rem">
+      <div class="metric-card">
+        <p class="eyebrow">Booking</p>
+        <strong>{{ booking.ref }}</strong>
+        <p class="muted" style="margin:.25rem 0 0">{{ booking.route }}</p>
+      </div>
+      <div class="metric-card">
+        <p class="eyebrow">Shipment</p>
+        <strong>{{ booking.commodity or 'General freight' }}</strong>
+        <p class="muted" style="margin:.25rem 0 0">{{ booking.pieces or 0 }} item(s) - {{ booking.total_weight_kg or 0 }} kg</p>
+      </div>
+    </div>
+
+    <div class="table-like">
+      <div class="table-row"><span>Subtotal</span><strong>R {{ '{:,.2f}'.format(invoice.amount or 0) }}</strong></div>
+      <div class="table-row"><span>VAT 15%</span><strong>R {{ '{:,.2f}'.format(invoice.vat_amount or 0) }}</strong></div>
+      <div class="table-row" style="font-size:1.1rem"><span>Total</span><strong>R {{ '{:,.2f}'.format(invoice.total_amount or 0) }}</strong></div>
+    </div>
+
+    <div style="display:flex;gap:.6rem;flex-wrap:wrap;margin-top:1.2rem">
+      {% if invoice.status != 'Paid' %}
+      <a class="primary-button" href="{{ url_for('shipper.pay_booking', ref=booking.ref) }}">Pay invoice</a>
+      {% endif %}
+      <a class="ghost-button" href="{{ url_for('shipper.booking_detail', ref=booking.ref) }}">View booking details</a>
+      <a class="ghost-button" href="{{ url_for('shipper.download_invoice', invoice_id=invoice.id) }}">Open printable copy</a>
+    </div>
+  </section>
+</div>
+{% endblock %}

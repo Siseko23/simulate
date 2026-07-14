@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="stack page-space">
+  <div class="topbar">
+    <div>
+      <p class="eyebrow">Shipper portal</p>
+      <h1>Reallocate booking - {{ booking.ref }}</h1>
+      <p class="topbar-copy">Choose a different supplier for this booking. The current supplier will be notified.</p>
+    </div>
+    <a href="{{ url_for('shipper.booking_detail', ref=booking.ref) }}" class="ghost-button">← Back</a>
+  </div>
+
+  {% if booking.supplier %}
+  <div style="background:rgba(122,88,0,.06);border:1px solid rgba(122,88,0,.2);border-radius:14px;padding:1rem">
+    <p style="margin:0;font-size:.9rem">Currently assigned to <strong>{{ booking.supplier.company_name }}</strong> - R {{ '{:,.0f}'.format(booking.quoted_value or 0) }}</p>
+  </div>
+  {% endif %}
+
+  <section class="panel">
+    <div class="panel-head"><h2>Available alternative quotes</h2></div>
+    <div class="table-like">
+      {% for q in other_quotes %}
+      <div class="table-row" style="flex-wrap:wrap;gap:.8rem">
+        <div style="flex:1">
+          <strong>{{ q.supplier.company_name }}</strong>
+          <p class="muted" style="font-size:.82rem;margin:.2rem 0 0">Score: {{ q.supplier.score }}/5 - {{ q.transit_days }} day transit</p>
+        </div>
+        <div style="text-align:right">
+          <p style="margin:0;font-weight:700">R {{ '{:,.0f}'.format(q.amount) }}</p>
+        </div>
+        <form method="POST" action="{{ url_for('shipper.reallocation_confirm', ref=booking.ref, quote_id=q.id) }}" onsubmit="return confirm('Reassign this booking to {{ q.supplier.company_name }}?')">
+          <button type="submit" class="primary-button" style="font-size:.85rem">Reallocate →</button>
+        </form>
+      </div>
+      {% else %}
+      <p class="muted" style="text-align:center;padding:1.5rem">No alternative quotes available for this booking.</p>
+      {% endfor %}
+    </div>
+  </section>
+</div>
+{% endblock %}

@@ -1,0 +1,12 @@
+{% extends "base.html" %}{% block content %}
+<div class="stack page-space"><div class="topbar"><div><p class="eyebrow">Shipper portal - Documents</p><h1>{{ booking.ref }}</h1><p class="topbar-copy">{{ booking.route }} - operational proof, POD and delivery evidence.</p></div><a class="ghost-button" href="{{ url_for('shipper.booking_detail',ref=booking.ref) }}">Back to booking</a></div>
+<section class="panel"><div class="panel-head"><div><h2>Shipment document hub</h2><p>Documents unlock as the booking progresses.</p></div><div style="display:flex;gap:.6rem;flex-wrap:wrap"><a class="ghost-button" href="{{ url_for('shipper.shipment_service_pack_pdf',ref=booking.ref) }}">Complete PDF</a><a class="primary-button" href="{{ url_for('shipper.shipment_service_pack',ref=booking.ref) }}">Download ZIP pack</a></div></div>
+<div class="grid two-up"><div class="panel" style="box-shadow:none"><h3>Operational documents</h3>
+<div class="ff2-driver-card"><div><strong>Waybill / CMR</strong><span>{{ 'Available' if waybill_ok else waybill_reason }}</span></div>{% if waybill_ok %}<a class="ghost-button" href="{{ url_for('shipper.waybill',ref=booking.ref) }}">Open</a>{% endif %}</div>
+<div class="ff2-driver-card"><div><strong>Purchase order reference</strong><span>{{ po.po_number if po else 'Pending' }}</span></div></div>
+<div class="ff2-driver-card"><div><strong>Driver completion report</strong><span>{{ 'Available in service pack' if booking.status=='Delivered' else 'Pending delivery' }}</span></div></div></div>
+<div class="panel" style="box-shadow:none"><h3>Proof of delivery</h3><div class="ff2-driver-card"><div><strong>Receiver</strong><span>{{ pod_meta.receiver or 'Pending' }}</span></div></div><div class="ff2-driver-card"><div><strong>Delivery GPS</strong><span>{{ pod_meta.gps or 'Not captured' }}</span></div></div>
+{% for f in pod_files %}<div class="ff2-driver-card"><div><strong>POD file {{ loop.index }}</strong><span>{{ f }}</span></div><a class="ghost-button" href="{{ url_for('shipper.shipment_pod_download',ref=booking.ref,filename=f) }}">Download</a></div>{% else %}<div class="empty-card">POD files appear after driver delivery submission.</div>{% endfor %}</div></div></section></div>
+{% endblock %}
+
+{% block scripts %}<script>setTimeout(()=>location.reload(),30000);</script>{% endblock %}

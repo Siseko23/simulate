@@ -1,0 +1,155 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="stack page-space">
+  <div class="topbar">
+    <div>
+      <p class="eyebrow">Driver portal - booking</p>
+      <h1>{{ booking.ref }}</h1>
+      <p class="topbar-copy">{{ booking.route }}</p>
+    </div>
+    <div style="display:flex;gap:.7rem;flex-wrap:wrap">
+      <span style="font-size:.82rem;font-weight:700;padding:.3rem .85rem;border-radius:999px;background:rgba(21,95,160,.12);color:var(--accent-dark)">{{ booking.status }}</span>
+      <a href="{{ url_for('driver.dashboard') }}" class="ghost-button">← Dashboard</a>
+    </div>
+  </div>
+
+  {% if booking.destinationType == 'Distribution Centre' %}
+  <div style="background:var(--surface)be6;border:2px solid #e8a000;border-radius:14px;padding:1rem 1.2rem">
+    <strong style="color:#7a5800;font-size:.95rem">Warning DC Delivery - Appointment Required</strong>
+    <p style="margin:.4rem 0 0;color:#7a5800;font-size:.88rem">Arrive at the DC within your allocated slot or you will need to re-book.</p>
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:.8rem;margin-top:.8rem;font-size:.88rem">
+      <div><div style="color:#a87800;font-size:.72rem;text-transform:uppercase;letter-spacing:.06em">DC Reference</div><strong>{{ booking.dcBookingRef or '-' }}</strong></div>
+      <div><div style="color:#a87800;font-size:.72rem;text-transform:uppercase;letter-spacing:.06em">Date</div><strong>{{ booking.dcSlotDate or '-' }}</strong></div>
+      <div><div style="color:#a87800;font-size:.72rem;text-transform:uppercase;letter-spacing:.06em">Time slot</div><strong>{{ booking.dcSlotTime or '-' }}</strong></div>
+    </div>
+  </div>
+  {% endif %}
+
+  <div class="grid two-up">
+    <div class="stack">
+      <section class="panel">
+        <div class="panel-head"><h2>Collection address</h2></div>
+        <p style="font-weight:600;margin:0">{{ booking.collectionContact }}</p>
+        <p style="color:var(--muted);margin:.3rem 0 .6rem;font-size:.9rem">{{ booking.collectionAddress }}</p>
+        <p style="font-size:.88rem">Contact: <a href="tel:{{ booking.collectionPhone }}" style="color:var(--accent)">{{ booking.collectionContact }} - {{ booking.collectionPhone }}</a></p>
+        {% if booking.status == 'Confirmed' %}
+        <a href="https://www.google.com/maps/dir/?api=1&destination={{ booking.collectionAddress|urlencode if booking.collectionAddress else booking.collectionCity|urlencode }}" target="_blank" class="ghost-button wide-button" style="margin-top:.8rem;display:block;text-align:center">Navigate to pickup</a>
+        <a href="#update-status" class="primary-button wide-button" style="margin-top:.8rem;display:block;text-align:center">Confirm collection / scan QR</a>
+        {% elif booking.collectedAt %}
+        <div style="background:rgba(47,108,87,.08);border:1px solid rgba(47,108,87,.2);border-radius:12px;padding:.7rem 1rem;margin-top:.8rem">
+          <strong style="color:var(--green);font-size:.88rem">OK Collected at {{ booking.collectedAt }}</strong>
+        </div>
+        {% endif %}
+      </section>
+
+      <section class="panel">
+        <div class="panel-head"><h2>Delivery address</h2></div>
+        <p style="font-weight:600;margin:0">{{ booking.deliveryContact }}</p>
+        <p style="color:var(--muted);margin:.3rem 0 .6rem;font-size:.9rem">{{ booking.deliveryAddress }}</p>
+        <p style="font-size:.88rem">Contact: <a href="tel:{{ booking.deliveryPhone }}" style="color:var(--accent)">{{ booking.deliveryContact }} - {{ booking.deliveryPhone }}</a></p>
+        {% if booking.status == 'In Transit' %}
+        <a href="https://www.google.com/maps/dir/?api=1&destination={{ booking.deliveryAddress|urlencode if booking.deliveryAddress else booking.deliveryCity|urlencode }}" target="_blank" class="ghost-button wide-button" style="margin-top:.8rem;display:block;text-align:center">Navigate to delivery</a>
+        <a href="#update-status" class="primary-button wide-button" style="margin-top:.8rem;display:block;text-align:center;background:var(--green);border-color:var(--green)">Confirm delivery / capture POD</a>
+        {% elif booking.deliveredAt %}
+        <div style="background:rgba(47,108,87,.08);border:1px solid rgba(47,108,87,.2);border-radius:12px;padding:.7rem 1rem;margin-top:.8rem">
+          <strong style="color:var(--green);font-size:.88rem">OK Delivered at {{ booking.deliveredAt }}</strong>
+        </div>
+        {% endif %}
+      </section>
+    </div>
+
+    <section class="panel">
+      <div class="panel-head"><h2>Cargo details</h2></div>
+      {% if booking.isFragile %}
+      <div style="display:flex;align-items:center;gap:.75rem;background:linear-gradient(135deg,var(--surface)5f5,#fed7d7);border:2px solid #e53e3e;border-radius:12px;padding:.8rem 1rem;margin-bottom:1rem">
+        <span style="font-size:1.8rem"></span>
+        <div>
+          <p style="margin:0;font-weight:800;color:#c53030;font-size:.9rem;text-transform:uppercase;letter-spacing:.05em">Warning Fragile Cargo</p>
+          <p style="margin:.2rem 0 0;font-size:.8rem;color:#742a2a">Handle with care. Do not drop, stack, or tilt.</p>
+        </div>
+      </div>
+      {% endif %}
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:.8rem;margin-bottom:1rem">
+        <div style="background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:.8rem;text-align:center">
+          <div style="font-size:1.5rem;font-weight:600">{{ booking.pieces }}</div>
+          <div style="font-size:.75rem;color:var(--muted);text-transform:uppercase;letter-spacing:.06em">{{ booking.unitType }}</div>
+        </div>
+        <div style="background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:.8rem;text-align:center">
+          <div style="font-size:1.5rem;font-weight:600">{{ booking.weightPerItem }} kg</div>
+          <div style="font-size:.75rem;color:var(--muted);text-transform:uppercase;letter-spacing:.06em">per unit</div>
+        </div>
+      </div>
+      <div style="font-size:.9rem">
+        <div style="display:flex;justify-content:space-between;padding:.45rem 0;border-bottom:1px dashed rgba(56,45,28,.08)"><span class="muted">Commodity</span><strong>{{ booking.commodity }}</strong></div>
+        <div style="display:flex;justify-content:space-between;padding:.45rem 0;border-bottom:1px dashed rgba(56,45,28,.08)"><span class="muted">Shipper</span><strong>{{ booking.shipper }}</strong></div>
+        <div style="display:flex;justify-content:space-between;padding:.45rem 0;border-bottom:1px dashed rgba(56,45,28,.08)"><span class="muted">Destination type</span><strong>{{ booking.destinationType }}</strong></div>
+        <div style="display:flex;justify-content:space-between;padding:.45rem 0"><span class="muted">Booking ref</span><strong>{{ booking.ref }}</strong></div>
+      </div>
+
+      {% if booking.ratingEvents %}
+      <div style="margin-top:1rem;padding-top:1rem;border-top:1px solid var(--line)">
+        <p style="font-size:.78rem;font-weight:600;color:var(--muted);margin:0 0 .5rem;text-transform:uppercase;letter-spacing:.06em">Service events logged</p>
+        {% for ev in booking.ratingEvents %}
+        <div style="display:flex;justify-content:space-between;font-size:.83rem;padding:.3rem 0;border-bottom:1px dashed rgba(56,45,28,.08)">
+          <span>{{ ev.label }}</span>
+          <span style="color:{% if ev.impact < 0 %}var(--red){% elif ev.impact > 0 %}var(--green){% else %}var(--muted){% endif %};font-weight:600">{% if ev.impact > 0 %}+{% endif %}{{ ev.impact }}</span>
+        </div>
+        {% endfor %}
+      </div>
+      {% endif %}
+    </section>
+
+    {% if booking.status in ['Driver Assigned','Confirmed','Collected','In Transit','Approaching Destination'] %}
+    <section class="panel" id="update-status">
+      <div class="panel-head"><h2>Update status</h2></div>
+      <form method="POST" enctype="multipart/form-data" action="{{ url_for('driver.update_status', ref=booking.ref) }}">
+        <div class="form-grid">
+          <label class="form-span">New status
+            <select name="status" required>
+              {% if booking.status in ['Driver Assigned','Confirmed'] %}
+              <option value="Collected">Collected - cargo picked up</option>
+              {% elif booking.status == 'Collected' %}
+              <option value="In Transit">In Transit - en route to delivery</option>
+              {% elif booking.status == 'In Transit' %}
+              <option value="Approaching Destination">Approaching Destination</option>
+              <option value="Delivered">Delivered - POD signed</option>
+              {% elif booking.status == 'Approaching Destination' %}
+              <option value="Delivered">Delivered - POD signed</option>
+              {% endif %}
+            </select>
+          </label>
+          <label class="form-span">Note (optional)
+            <input type="text" name="note" placeholder="e.g. Slight delay due to traffic"/>
+          </label>
+          {% if booking.status in ['In Transit','Approaching Destination'] %}
+          <label class="form-span">Receiver name for POD
+            <input type="text" name="pod_recipient_name" placeholder="Person who received the goods"/>
+          </label>
+          <label class="form-span" style="display:flex;gap:.55rem;align-items:center;background:rgba(47,108,87,.08);border:1px solid rgba(47,108,87,.2);border-radius:12px;padding:.8rem 1rem">
+            <input type="checkbox" name="pod_confirmed" value="1" style="width:auto"/>
+            <span>I confirm the receiver accepted the goods and this acts as the demo POD signature.</span>
+          </label>
+          <label class="form-span">POD note (optional)
+            <input type="text" name="pod_note" placeholder="e.g. Received in good order"/>
+          </label>
+          <label class="form-span">Main POD photo / signed document
+            <input type="file" name="pod_photo" accept="image/*,.pdf"/>
+            <span class="muted" style="font-size:.78rem">Use this for the receiver-signed POD or physical delivery note.</span>
+          </label>
+          <label class="form-span">Additional delivery documents
+            <input type="file" name="pod_documents" accept="image/*,.pdf" multiple/>
+          <label class="form-span">Receiver signature / signed slip<input type="file" name="receiver_signature" accept="image/*,.pdf"></label>
+          <label class="form-span">Driver signature<input type="file" name="driver_signature" accept="image/*,.pdf"></label>
+          <input type="hidden" name="delivery_lat" id="delivery_lat"><input type="hidden" name="delivery_lng" id="delivery_lng">
+          <button type="button" class="ghost-button" onclick="navigator.geolocation&&navigator.geolocation.getCurrentPosition(p=>{document.getElementById('delivery_lat').value=p.coords.latitude;document.getElementById('delivery_lng').value=p.coords.longitude;this.textContent='GPS captured'})">Capture delivery GPS</button>
+            <span class="muted" style="font-size:.78rem">Upload booking forms, pro forma invoices, extra POD pages, or other signed proof documents.</span>
+          </label>
+          {% endif %}
+        </div>
+        <button type="submit" class="primary-button wide-button" style="margin-top:.8rem">Update status</button>
+      </form>
+    </section>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

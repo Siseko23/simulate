@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="stack page-space">
+  <div class="topbar">
+    <div>
+      <p class="eyebrow">Supplier portal</p>
+      <h1>Rate cards</h1>
+      <p class="topbar-copy">Your published rates per route. Submitting a new rate for an existing route creates a new version.</p>
+    </div>
+  </div>
+
+  <div class="grid two-up">
+    <section class="panel">
+      <div class="panel-head"><h2>Add / update rate card</h2></div>
+      <form method="POST" action="{{ url_for('supplier.add_rate_card') }}">
+        <div class="form-grid">
+          <label class="form-span">Route<input name="route" placeholder="Durban → Johannesburg" required/></label>
+          <label>Vehicle type
+            <select name="vehicle_type">
+              <option>Superlink</option><option>8-Ton Rigid</option><option>4-Ton Rigid</option>
+              <option>Curtainsider</option><option>Flatbed</option><option>Refrigerated</option>
+            </select>
+          </label>
+          <label>Load type<input name="load_type" placeholder="General freight"/></label>
+          <label>Base rate (R)<input type="number" name="base_rate" step="0.01" required/></label>
+          <label>Fuel surcharge (%)<input type="number" name="fuel_surcharge_pct" step="0.1" value="6"/></label>
+          <label>Minimum charge (R)<input type="number" name="minimum_charge" step="0.01"/></label>
+        </div>
+        <button type="submit" class="primary-button wide-button">Save rate card</button>
+      </form>
+    </section>
+
+    <section class="panel">
+      <div class="panel-head"><h2>Active rate cards</h2></div>
+      <div class="table-like">
+        {% for r in rate_cards if r.is_active %}
+        <div class="table-row" style="flex-wrap:wrap;gap:.6rem">
+          <div style="flex:1">
+            <strong>{{ r.route }}</strong>
+            <p class="muted" style="font-size:.8rem;margin:.2rem 0 0">{{ r.vehicle_type }} - {{ r.load_type }} - {{ r.version }}</p>
+          </div>
+          <div style="text-align:right">
+            <p style="margin:0;font-weight:600">R {{ '{:,.0f}'.format(r.base_rate) }}</p>
+            <p class="muted" style="font-size:.78rem;margin:.1rem 0 0">+{{ r.fuel_surcharge_pct }}% fuel</p>
+          </div>
+        </div>
+        {% else %}
+        <p class="muted" style="text-align:center;padding:1rem">No rate cards yet.</p>
+        {% endfor %}
+      </div>
+    </section>
+  </div>
+</div>
+{% endblock %}

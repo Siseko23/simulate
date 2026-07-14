@@ -1,0 +1,71 @@
+{% extends "base.html" %}
+{% block content %}
+<link rel="manifest" href="{{ url_for('static', filename='driver/manifest.json') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='driver/driver-pwa.css') }}">
+<div class="driver-phone-shell">
+  <section class="driver-job-header">
+    <a href="{{ url_for('driver.app_home') }}" class="driver-back">Back to jobs</a>
+    <span>{{ booking.displayStatus or booking.status }}</span>
+    <h1>{{ booking.ref }}</h1>
+    <p>{{ booking.collectionCity }} to {{ booking.deliveryCity }}</p>
+  </section>
+
+  <section class="driver-map-card">
+    <div class="driver-map-line"><span></span><i></i><span></span></div>
+    <div class="driver-map-copy">
+      <strong>Trip instructions</strong>
+      <p>{{ booking.pieces }} pallet(s), {{ booking.totalWeight or booking.weightPerItem }} kg, {{ booking.commodity }}</p>
+    </div>
+  </section>
+
+  <section class="driver-card-stack">
+    <article class="driver-detail-card">
+      <span>Pickup</span>
+      <strong>{{ booking.collectionAddress or booking.collectionCity }}</strong>
+      <p>{{ booking.collectionContact }} {{ booking.collectionPhone }}</p>
+      <a class="driver-primary" target="_blank" href="https://www.google.com/maps/dir/?api=1&destination={{ (booking.collectionAddress or booking.collectionCity)|urlencode }}">Navigate to pickup</a>
+    </article>
+
+    <article class="driver-detail-card">
+      <span>Drop-off</span>
+      <strong>{{ booking.deliveryAddress or booking.deliveryCity }}</strong>
+      <p>{{ booking.deliveryContact }} {{ booking.deliveryPhone }}</p>
+      <a class="driver-secondary" target="_blank" href="https://www.google.com/maps/dir/?api=1&destination={{ (booking.deliveryAddress or booking.deliveryCity)|urlencode }}">Navigate to delivery</a>
+    </article>
+  </section>
+
+  <section class="driver-actions">
+    {% if booking.status in ['Driver Assigned','Confirmed'] %}
+    <form method="post" action="{{ url_for('driver.app_collect', ref=booking.ref) }}">
+      <button class="driver-primary" type="submit">Scan collection QR</button>
+    </form>
+    {% elif booking.status == 'Collected' %}
+    <form method="post" action="{{ url_for('driver.app_start_transit', ref=booking.ref) }}">
+      <button class="driver-primary" type="submit">Start trip</button>
+    </form>
+    {% elif booking.status in ['In Transit','Approaching Destination'] %}
+    <form method="post" enctype="multipart/form-data" action="{{ url_for('driver.app_deliver', ref=booking.ref) }}" class="driver-pod-form">
+      <label>Receiver name<input name="pod_recipient_name" required placeholder="Person receiving goods"></label>
+      <label>Delivery note<input name="pod_note" placeholder="Received in good order"></label>
+      <label>Main POD photo / signed document<input type="file" name="pod_photo" accept="image/*,.pdf"></label>
+      <label>Additional documents<input type="file" name="pod_documents" accept="image/*,.pdf" multiple></label>
+      <label>Receiver signature / signed slip<input type="file" name="receiver_signature" accept="image/*,.pdf"></label>
+      <label>Driver signature<input type="file" name="driver_signature" accept="image/*,.pdf"></label>
+      <input type="hidden" name="delivery_lat" id="delivery_lat"><input type="hidden" name="delivery_lng" id="delivery_lng">
+      <button class="driver-secondary" type="button" onclick="navigator.geolocation&&navigator.geolocation.getCurrentPosition(p=>{delivery_lat.value=p.coords.latitude;delivery_lng.value=p.coords.longitude;this.textContent='GPS captured'})">Capture delivery GPS</button>
+      <button class="driver-primary" type="submit">Scan delivery QR and submit POD</button>
+    </form>
+    {% else %}
+    <div class="driver-empty">This job is {{ booking.status }}.</div>
+    {% endif %}
+  </section>
+
+  <section class="driver-install-card">
+    <strong>Live GPS demo</strong>
+    <p>Use this to send a demo GPS point from the browser to FreightFlow tracking.</p>
+    <button class="driver-secondary" data-gps-ref="{{ booking.ref }}" type="button">Share current location</button>
+    <p id="driver-gps-status" class="driver-gps-status"></p>
+  </section>
+</div>
+<script src="{{ url_for('static', filename='driver/driver-pwa.js') }}"></script>
+{% endblock %}

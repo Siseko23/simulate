@@ -1,0 +1,213 @@
+{% extends "base.html" %}
+{% block content %}
+<style>
+.sup-card{display:flex;align-items:center;gap:.9rem;padding:.85rem 1rem;border-radius:12px;border:1.5px solid var(--line);cursor:pointer;transition:border-color .15s,background .15s;text-decoration:none;color:inherit;margin-bottom:.5rem}
+.sup-card:hover{border-color:var(--accent);background:var(--accent-subtle)}
+.sup-card.selected{border-color:var(--accent);background:var(--accent-subtle)}
+.sup-avatar{width:40px;height:40px;border-radius:10px;background:var(--accent-subtle);display:grid;place-items:center;font-size:1.1rem;flex-shrink:0}
+.doc-row{display:flex;align-items:flex-start;gap:.9rem;padding:1rem 0;border-bottom:1px dashed var(--line)}
+.doc-row:last-child{border-bottom:none}
+.pill{font-size:.72rem;font-weight:700;padding:.22rem .65rem;border-radius:999px;white-space:nowrap}
+.pill-verified{background:#dcfce7;color:#166534}
+.pill-pending{background:#dbeafe;color:#1e40af}
+.pill-reupload{background:#fee2e2;color:#991b1b}
+.expiry-ok{color:var(--green);font-weight:700}
+.expiry-warn{color:#e67e22;font-weight:700}
+.expiry-danger{color:var(--red);font-weight:700}
+</style>
+
+<div class="stack page-space">
+  <div class="topbar">
+    <div>
+      <p class="eyebrow">Admin - Compliance</p>
+      <h1>Document vault</h1>
+      <p class="topbar-copy">Select a supplier to review their compliance documents, expiry dates, and verification status.</p>
+    </div>
+    {% if pending_count %}
+    <span style="background:#fee2e2;color:#991b1b;font-weight:700;font-size:.85rem;padding:.4rem 1rem;border-radius:999px">Warning {{ pending_count }} pending review</span>
+    {% endif %}
+  </div>
+
+  <div class="grid two-up" style="align-items:flex-start">
+
+    {# -- LEFT: SUPPLIER LIST -- #}
+    <section class="panel" style="position:sticky;top:1rem">
+      <div class="panel-head"><h2>Suppliers</h2><p>{{ supplier_stats|length }} registered</p></div>
+      <div style="margin-bottom:.6rem">
+        <input type="text" id="supSearch" placeholder="Search suppliers..."
+               oninput="filterSuppliers(this.value)"
+               style="width:100%;padding:.65rem .85rem;border:1.5px solid var(--line);border-radius:10px;font:inherit;font-size:.88rem"/>
+      </div>
+      <div id="supList" style="max-height:70vh;overflow-y:auto">
+        {% for s in supplier_stats %}
+        <a href="{{ url_for('admin.documents', supplier_id=s.id) }}"
+           class="sup-card {% if supplier_id == s.id %}selected{% endif %}"
+           data-name="{{ s.name|lower }}">
+          <div class="sup-avatar">Company</div>
+          <div style="flex:1;min-width:0">
+            <p style="margin:0;font-weight:700;font-size:.9rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ s.name }}</p>
+            <div style="display:flex;gap:.4rem;flex-wrap:wrap;margin-top:.3rem">
+              {% if s.pending %}<span class="pill pill-pending">{{ s.pending }} pending</span>{% endif %}
+              {% if s.expiring %}<span class="pill" style="background:var(--surface)3cd;color:#7a5800">{{ s.expiring }} expiring</span>{% endif %}
+              {% if s.expired %}<span class="pill" style="background:#fee2e2;color:#991b1b">{{ s.expired }} expired</span>{% endif %}
+              {% if s.verified and not s.pending and not s.expiring and not s.expired %}
+              <span class="pill pill-verified">{{ s.verified }} verified</span>{% endif %}
+              {% if not s.total %}<span style="font-size:.75rem;color:var(--muted)">No docs uploaded</span>{% endif %}
+            </div>
+          </div>
+          <span style="font-size:.75rem;color:var(--muted);flex-shrink:0">{{ s.total }}</span>
+        </a>
+        {% endfor %}
+      </div>
+    </section>
+
+    {# -- RIGHT: DOCUMENT DETAIL -- #}
+    <div class="stack">
+      {% if selected_supplier %}
+
+      {# Header #}
+      <section class="panel">
+        <div style="display:flex;align-items:center;gap:1rem">
+          <div class="sup-avatar" style="width:52px;height:52px;font-size:1.5rem">Company</div>
+          <div>
+            <h2 style="margin:0">{{ selected_supplier.company_name }}</h2>
+            <p class="muted" style="margin:.2rem 0 0;font-size:.85rem">
+              Status: <strong style="color:{% if selected_supplier.status=='Active' %}var(--green){% else %}#e67e22{% endif %}">{{ selected_supplier.status }}</strong>
+              &nbsp;-&nbsp; {{ documents|length }} document{{ 's' if documents|length != 1 }}
+            </p>
+          </div>
+          <div style="margin-left:auto;display:flex;gap:.5rem">
+            <a href="{{ url_for('admin.doc_requests') }}" class="ghost-button" style="font-size:.82rem">Message Request document</a>
+          </div>
+        </div>
+      </section>
+
+      {# Summary badges #}
+      {% set verified_docs = documents|selectattr('status','equalto','Verified')|list %}
+      {% set pending_docs  = documents|selectattr('status','equalto','Pending review')|list %}
+      {% set reupload_docs = documents|selectattr('status','equalto','Awaiting re-upload')|list %}
+      <div style="display:flex;gap:.6rem;flex-wrap:wrap">
+        <span class="pill pill-verified" style="font-size:.82rem;padding:.3rem .9rem">OK {{ verified_docs|length }} verified</span>
+        {% if pending_docs %}<span class="pill pill-pending" style="font-size:.82rem;padding:.3rem .9rem">Pending {{ pending_docs|length }} pending review</span>{% endif %}
+        {% if reupload_docs %}<span class="pill pill-reupload" style="font-size:.82rem;padding:.3rem .9rem">Warning {{ reupload_docs|length }} re-upload requested</span>{% endif %}
+      </div>
+
+      {# Document list #}
+      <section class="panel">
+        <div class="panel-head"><h2>Documents</h2></div>
+
+        {% if documents %}
+        {% for d in documents %}
+        <div class="doc-row">
+          {# Icon #}
+          <div style="width:44px;height:44px;border-radius:12px;display:grid;place-items:center;font-size:1.3rem;flex-shrink:0;background:{% if d.status=='Verified' %}#dcfce7{% elif d.status=='Pending review' %}#dbeafe{% else %}#fee2e2{% endif %}">
+            {% if 'Insurance' in d.name %}Shield
+            {% elif 'Roadworthy' in d.name %}Truck
+            {% elif 'Operator' in d.name or 'Permit' in d.name %}List
+            {% else %}Doc{% endif %}
+          </div>
+
+          {# Meta #}
+          <div style="flex:1;min-width:0">
+            <div style="display:flex;align-items:center;gap:.5rem;flex-wrap:wrap;margin-bottom:.25rem">
+              <strong>{{ d.name }}</strong>
+              <span class="pill {% if d.status=='Verified' %}pill-verified{% elif d.status=='Pending review' %}pill-pending{% else %}pill-reupload{% endif %}">
+                {{ d.status }}
+              </span>
+            </div>
+            <p style="margin:0;font-size:.8rem;color:var(--muted)">
+              Uploaded {{ d.uploaded_at.strftime('%d %b %Y') if d.uploaded_at else '-' }}
+              {% if d.verified_at %} - Verified {{ d.verified_at.strftime('%d %b %Y') }}{% endif %}
+            </p>
+
+            {# Expiry row #}
+            {% if d.expiry_date %}
+            <p style="margin:.3rem 0 0;font-size:.82rem">
+              Expires: <strong>{{ d.expiry_date.strftime('%d %b %Y') }}</strong>
+              &nbsp;-&nbsp;
+              {% set days = d.days_to_expiry %}
+              {% if days is none %}
+                <span class="muted">No expiry</span>
+              {% elif days < 0 %}
+                <span class="expiry-danger">Warning Expired {{ (-days)|abs }} days ago</span>
+              {% elif days <= 14 %}
+                <span class="expiry-danger"> {{ days }} days left</span>
+              {% elif days <= 30 %}
+                <span class="expiry-warn"> {{ days }} days left</span>
+              {% else %}
+                <span class="expiry-ok">OK {{ days }} days left</span>
+              {% endif %}
+            </p>
+            {% else %}
+            <p style="margin:.3rem 0 0;font-size:.8rem;color:var(--muted)">No expiry date set</p>
+            {% endif %}
+
+            {% if d.rejection_reason %}
+            <p style="margin:.3rem 0 0;font-size:.8rem;color:var(--red)">Rejection note: {{ d.rejection_reason }}</p>
+            {% endif %}
+          </div>
+
+          {# Actions #}
+          <div style="display:flex;flex-direction:column;gap:.4rem;flex-shrink:0">
+            <a href="{{ url_for('admin.download_document', doc_id=d.id) }}" class="ghost-button" style="padding:.3rem .8rem;font-size:.78rem;min-width:80px;text-align:center;text-decoration:none">View</a>
+            {% if d.status == 'Pending review' %}
+            <form method="POST" action="{{ url_for('admin.verify_document', doc_id=d.id) }}" style="margin:0">
+              <input type="hidden" name="next" value="{{ url_for('admin.documents', supplier_id=selected_supplier.id) }}">
+              <button type="submit" class="primary-button" style="padding:.3rem .8rem;font-size:.78rem;min-width:80px">OK Verify</button>
+            </form>
+            <form method="POST" action="{{ url_for('admin.reject_document', doc_id=d.id) }}" style="margin:0"
+                  onsubmit="return promptRejection(this)">
+              <input type="hidden" name="reason" id="reason-{{ d.id }}" value="">
+              <input type="hidden" name="next" value="{{ url_for('admin.documents', supplier_id=selected_supplier.id) }}">
+              <button type="submit" class="ghost-button" style="padding:.3rem .8rem;font-size:.78rem;min-width:80px;color:var(--red)">X Reject</button>
+            </form>
+            {% elif d.status == 'Verified' %}
+            <span style="font-size:.75rem;color:var(--green);font-weight:700;text-align:center">OK Verified</span>
+            {% elif d.status == 'Awaiting re-upload' %}
+            <span style="font-size:.75rem;color:#e67e22;font-weight:700;text-align:center">Pending Awaiting<br>re-upload</span>
+            {% endif %}
+          </div>
+        </div>
+        {% endfor %}
+
+        {% else %}
+        <div style="text-align:center;padding:2rem;color:var(--muted)">
+          <p style="font-size:2rem;margin:0"></p>
+          <p style="margin:.5rem 0">No documents uploaded yet.</p>
+          <a href="{{ url_for('admin.doc_requests') }}" class="ghost-button" style="display:inline-block;margin-top:.5rem">Request documents from this supplier</a>
+        </div>
+        {% endif %}
+      </section>
+
+      {% else %}
+      {# No supplier selected yet #}
+      <section class="panel" style="text-align:center;padding:3rem 2rem">
+        <p style="font-size:3rem;margin:0">Back</p>
+        <h2 style="margin:.8rem 0 .4rem">Select a supplier</h2>
+        <p class="muted">Choose a supplier from the list to view their compliance documents, verification status, and expiry dates.</p>
+        {% if pending_count %}
+        <p style="margin:1rem 0 0;color:#e67e22;font-weight:600">{{ pending_count }} document{{ 's' if pending_count != 1 }} awaiting review across all suppliers.</p>
+        {% endif %}
+      </section>
+      {% endif %}
+    </div>
+
+  </div>
+</div>
+
+<script>
+function filterSuppliers(q) {
+  q = q.toLowerCase();
+  document.querySelectorAll('#supList .sup-card').forEach(function(card) {
+    card.style.display = card.dataset.name.includes(q) ? '' : 'none';
+  });
+}
+function promptRejection(form) {
+  var docId = form.querySelector('[id^="reason-"]').id.replace('reason-','');
+  var reason = prompt('Rejection reason (shown to supplier):');
+  if (!reason) return false;
+  document.getElementById('reason-' + docId).value = reason;
+  return true;
+}
+</script>
+{% endblock %}

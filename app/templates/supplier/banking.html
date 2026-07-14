@@ -1,0 +1,67 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="stack page-space">
+  <div class="topbar">
+    <div>
+      <p class="eyebrow">Supplier portal</p>
+      <h1>Banking & earnings</h1>
+      <p class="topbar-copy">Manage your payout bank account and track earnings, commissions, and pending payouts.</p>
+    </div>
+  </div>
+
+  <div class="stats-grid">
+    <article class="stat-card">
+      <p class="stat-label">Total earned (delivered)</p>
+      <strong>R {{ '{:,.0f}'.format(total_gross) }}</strong>
+      <p class="muted">Gross freight revenue</p>
+    </article>
+    <article class="stat-card">
+      <p class="stat-label">Platform commission deducted</p>
+      <strong style="color:var(--red)">- R {{ '{:,.0f}'.format(total_commission) }}</strong>
+      <p class="muted">Platform fee</p>
+    </article>
+    <article class="stat-card">
+      <p class="stat-label">Net paid out</p>
+      <strong style="color:var(--green)">R {{ '{:,.0f}'.format(total_paid) }}</strong>
+      <p class="muted">Transferred to your account</p>
+    </article>
+    <article class="stat-card">
+      <p class="stat-label">Pending payout</p>
+      <strong style="color:var(--accent)">R {{ '{:,.0f}'.format(total_pending) }}</strong>
+      <p class="muted">Awaiting admin release</p>
+    </article>
+  </div>
+
+  <section class="panel">
+    <div class="panel-head"><h2>Bank account details</h2><p>Payouts are processed by admin. Ensure your details are correct.</p></div>
+    <form method="POST">
+      <div class="form-grid">
+        <label>Account holder name<input name="account_holder" value="{{ supplier.account_holder or '' }}" placeholder="Full legal name" required/></label>
+        <label>Bank name
+          <select name="bank_name">
+            {% set banks = ['Absa','Capitec Bank','First National Bank (FNB)','Nedbank','Standard Bank','African Bank','Bidvest Bank','Discovery Bank','Investec','TymeBank'] %}
+            {% for b in banks %}
+            <option {% if supplier.bank_name==b %}selected{% endif %}>{{ b }}</option>
+            {% endfor %}
+          </select>
+        </label>
+        <label>Branch code<input name="branch_code" value="{{ supplier.bank_branch or '' }}" placeholder="e.g. 051001"/></label>
+        <label>Account type
+          <select name="account_type">
+            <option {% if supplier.account_type=='Current / Cheque' %}selected{% endif %}>Current / Cheque</option>
+            <option {% if supplier.account_type=='Savings' %}selected{% endif %}>Savings</option>
+            <option {% if supplier.account_type=='Transmission' %}selected{% endif %}>Transmission</option>
+          </select>
+        </label>
+        <label class="form-span">Account number<input name="account_number" value="{{ supplier.bank_account or '' }}" placeholder="Account number"/></label>
+      </div>
+      {% if not (supplier.bank_name and supplier.bank_account) %}
+      <div style="background:rgba(155,28,28,.06);border:1px solid rgba(155,28,28,.18);border-radius:12px;padding:.8rem;margin:.8rem 0">
+        <p style="margin:0;font-size:.85rem;color:#9b1c1c">Warning Incomplete banking details - you will not receive payouts until this is filled in.</p>
+      </div>
+      {% endif %}
+      <button type="submit" class="primary-button wide-button">Save banking details</button>
+    </form>
+  </section>
+</div>
+{% endblock %}

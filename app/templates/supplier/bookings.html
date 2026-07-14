@@ -1,0 +1,165 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="stack page-space">
+  <div class="topbar">
+    <div>
+      <p class="eyebrow">Supplier portal</p>
+      <h1>Bookings</h1>
+      <p class="topbar-copy">Accept or reject pending bookings. Auto-reassignment triggers when the 12-hour accept + driver assignment SLA window expires.</p>
+    </div>
+    {% if pending %}
+    <div style="align-self:flex-start;margin-top:.5rem">
+      <span style="padding:.5rem 1.1rem;border-radius:999px;background:rgba(155,28,28,.12);color:#9b1c1c;font-size:.85rem;font-weight:600">
+        Pending {{ pending|length }} booking{{ 's' if pending|length > 1 }} awaiting action
+      </span>
+    </div>
+    {% endif %}
+  </div>
+
+  {% if pending %}
+  <section class="panel" style="border:2px solid rgba(155,28,28,.25);background:rgba(155,28,28,.02)">
+    <div class="panel-head">
+      <h2>Alert New bookings - action required</h2>
+      <p style="color:#9b1c1c;font-weight:600">Accept first, then assign driver/vehicle before the 12-hour window expires</p>
+    </div>
+    <div class="stack" style="gap:1rem">
+      {% for b in pending %}
+      <div style="border:1px solid rgba(155,28,28,.2);border-radius:14px;overflow:hidden;background:var(--surface)">
+        <!-- Booking header -->
+        <div style="padding:1rem 1.2rem;background:rgba(155,28,28,.04);border-bottom:1px solid rgba(155,28,28,.15);display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:.5rem">
+          <div>
+            <div style="display:flex;align-items:center;gap:.6rem;flex-wrap:wrap">
+              <strong style="font-size:1rem">{{ b.ref }}</strong>
+              <span class="pill" style="background:rgba(155,28,28,.1);color:#9b1c1c">Pending action</span>
+            </div>
+            <p style="margin:.3rem 0 0;font-size:.9rem;font-weight:600">{{ b.route }}</p>
+            <p class="muted" style="font-size:.8rem;margin:.15rem 0 0">Shipper: {{ b.shipper }} &middot; Response window: {{ b.supplierResponseWindow }}</p>
+          </div>
+          <div style="text-align:right">
+            <p class="muted" style="font-size:.75rem;margin:0">Your rate</p>
+            <strong style="font-size:1.2rem;color:var(--accent-dark)">{{ zar(b.value) }}</strong>
+          </div>
+        </div>
+
+        <!-- Booking details grid -->
+        <div style="padding:1rem 1.2rem;display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:.8rem 1.2rem">
+          <div>
+            <p class="muted" style="font-size:.72rem;font-weight:700;text-transform:uppercase;margin:0 0 .2rem">Collection address</p>
+            <p style="font-size:.85rem;margin:0">{{ b.collectionAddress }}</p>
+            <p style="font-size:.8rem;color:var(--muted);margin:.1rem 0 0">Contact: {{ b.collectionContact }} - {{ b.collectionPhone }}</p>
+          </div>
+          <div>
+            <p class="muted" style="font-size:.72rem;font-weight:700;text-transform:uppercase;margin:0 0 .2rem">Delivery address</p>
+            <p style="font-size:.85rem;margin:0">{{ b.deliveryAddress }}</p>
+            <p style="font-size:.8rem;color:var(--muted);margin:.1rem 0 0">Contact: {{ b.deliveryContact }} - {{ b.deliveryPhone }}</p>
+          </div>
+          <div>
+            <p class="muted" style="font-size:.72rem;font-weight:700;text-transform:uppercase;margin:0 0 .2rem">Load</p>
+            <p style="font-size:.85rem;margin:0">{{ b.pieces }} {{ b.unitType }}</p>
+            <p style="font-size:.8rem;color:var(--muted);margin:.1rem 0 0">{{ b.commodity }}</p>
+            {% if b.isFragile %}
+            <span style="display:inline-flex;align-items:center;gap:.3rem;background:#fed7d7;color:#c53030;font-size:.72rem;font-weight:700;padding:.2rem .55rem;border-radius:999px;margin-top:.3rem;letter-spacing:.04em"> FRAGILE</span>
+            {% endif %}
+          </div>
+          {% if b.collectedAt or b.dcSlotDate %}
+          <div>
+            <p class="muted" style="font-size:.72rem;font-weight:700;text-transform:uppercase;margin:0 0 .2rem">Collection date</p>
+            <p style="font-size:.85rem;margin:0">{{ b.collectedAt or b.dcSlotDate }}</p>
+          </div>
+          {% endif %}
+          <div>
+            <p class="muted" style="font-size:.72rem;font-weight:700;text-transform:uppercase;margin:0 0 .2rem">Destination type</p>
+            <p style="font-size:.85rem;margin:0">{{ b.destinationType }}</p>
+            {% if b.dcBookingRef %}<p style="font-size:.8rem;color:var(--muted);margin:.1rem 0 0">DC ref: {{ b.dcBookingRef }}</p>{% endif %}
+          </div>
+          <div>
+            <p class="muted" style="font-size:.72rem;font-weight:700;text-transform:uppercase;margin:0 0 .2rem">Booking created</p>
+            <p style="font-size:.85rem;margin:0">{{ b.createdAt }}</p>
+          </div>
+        </div>
+
+        <!-- Accept / Reject actions -->
+        <div style="padding:1rem 1.2rem;border-top:1px solid var(--line);display:flex;gap:.75rem;align-items:flex-end;flex-wrap:wrap">
+          <!-- Accept form: driver assignment happens on Dispatch Centre after acceptance, within the same 12-hour SLA. -->
+          <form method="POST" action="{{ url_for('supplier.accept_booking', ref=b.ref) }}" style="display:flex;gap:.6rem;align-items:flex-end;flex-wrap:wrap;flex:1;min-width:220px">
+            <div style="flex:1;min-width:220px">
+              <p class="muted" style="font-size:.78rem;margin:0">Step 1: accept the paid booking. Step 2: go to Dispatch Centre and assign a driver/vehicle before the 12-hour SLA expires.</p>
+            </div>
+            <button type="submit" class="primary-button" style="white-space:nowrap">OK Accept booking</button>
+          </form>
+          <!-- Reject form -->
+          <form method="POST" action="{{ url_for('supplier.reject_booking', ref=b.ref) }}" style="margin:0"
+            onsubmit="return confirm('Reject booking {{ b.ref }}? The next available supplier will be notified.')">
+            <button type="submit" class="ghost-button" style="color:var(--red);border-color:rgba(192,57,43,.3)">x Reject</button>
+          </form>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </section>
+  {% endif %}
+
+  <section class="panel">
+    <div class="panel-head"><h2>Booking history</h2></div>
+    <div class="toggle-row">
+      {% for s in ['All','Confirmed','In Transit','Delivered','Rejected'] %}
+      <button class="nav-chip {% if loop.first %}active{% endif %}" onclick="filterBookings('{{ s }}',this)">{{ s }}</button>
+      {% endfor %}
+    </div>
+    <div class="table-like" id="booking-table">
+      {% for b in bookings %}
+      {% if b.status != 'Pending Supplier Acceptance' %}
+      <div class="table-row" data-status="{{ b.status }}">
+        <div>
+          <strong>{{ b.ref }}</strong>
+          <p class="muted" style="margin:.2rem 0 0">{{ b.route }}</p>
+        </div>
+        <div>
+          <p>{{ b.shipper }}</p>
+          <p class="muted" style="font-size:.82rem">{{ b.commodity }} - {{ b.pieces }} {{ b.unitType }}</p>
+        </div>
+        <div>
+          <p style="font-weight:600">{{ zar(b.value) }}</p>
+          {% if b.driverName %}<p class="muted" style="font-size:.8rem">Driver: {{ b.driverName }}</p>{% endif %}
+          {% if b.vehicleReg %}<p class="muted" style="font-size:.8rem">Vehicle: {{ b.vehicleReg }}</p>{% endif %}
+          {% if b.collectedAt %}<p class="muted" style="font-size:.76rem">Collected: {{ b.collectedAt }}</p>{% endif %}
+          {% if b.deliveredAt %}<p class="muted" style="font-size:.76rem">Delivered: {{ b.deliveredAt }}</p>{% endif %}
+        </div>
+        <div style="display:flex;align-items:center;gap:.5rem;flex-wrap:wrap">
+          <span class="pill {% if b.status in ('Confirmed','Delivered') %}badge{% endif %}"
+            style="{% if b.status=='Rejected' %}background:rgba(192,57,43,.1);color:var(--red){% endif %}">
+            {{ b.status }}
+          </span>
+          <a href="{{ url_for('supplier.booking_documents', ref=b.ref) }}"
+             class="ghost-button" style="padding:.3rem .65rem;font-size:.74rem" title="Open shipment documents">Documents</a>
+          {% if b.status in ('Driver Assigned','Collected','In Transit','Approaching Destination') %}<a class="ghost-button" style="padding:.3rem .65rem;font-size:.74rem" href="{{ url_for('supplier.tracking') }}">Tracking</a>{% endif %}
+          {% if b.driverName %}<a class="ghost-button" style="padding:.3rem .65rem;font-size:.74rem" href="{{ url_for('supplier.chat_thread', driver_id=b.driverId) if b.driverId else url_for('supplier.bookings') }}">Chat</a>{% endif %}
+          {% if b.locationAccessStatus == 'Pending' %}
+          <form method="post" action="{{ url_for('supplier.location_access_decision', ref=b.ref) }}" style="display:inline-flex;gap:.35rem">
+            <input type="hidden" name="decision" value="approve">
+            <button class="ghost-button" style="padding:.3rem .65rem;font-size:.74rem" type="submit">Approve GPS</button>
+          </form>
+          <form method="post" action="{{ url_for('supplier.location_access_decision', ref=b.ref) }}" style="display:inline-flex;gap:.35rem">
+            <input type="hidden" name="decision" value="reject">
+            <button class="ghost-button" style="padding:.3rem .65rem;font-size:.74rem" type="submit">Reject GPS</button>
+          </form>
+          {% endif %}
+        </div>
+      </div>
+      {% endif %}
+      {% else %}
+      <div class="empty-card">No booking history yet.</div>
+      {% endfor %}
+    </div>
+  </section>
+</div>
+{% endblock %}
+{% block scripts %}<script>
+function filterBookings(status,btn){
+  document.querySelectorAll('.nav-chip').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  document.querySelectorAll('#booking-table .table-row').forEach(r=>{
+    r.style.display=(status==='All'||r.dataset.status===status)?'flex':'none';
+  });
+}
+</script>{% endblock %}

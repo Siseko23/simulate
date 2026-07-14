@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="stack page-space" style="max-width:520px;margin:0 auto;text-align:center">
+  <div style="margin:2rem auto;width:80px;height:80px;border-radius:20px;background:linear-gradient(135deg,var(--accent),#5f9dd5);display:grid;place-items:center;font-size:2.5rem">Cargo</div>
+  <h1 style="margin:.5rem 0">Confirm Delivery</h1>
+  <p class="muted" style="font-size:.95rem">Booking <strong>{{ booking.ref }}</strong> - {{ booking.route }}</p>
+
+  <section class="panel" style="padding:1.5rem;text-align:left;margin-top:1rem">
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:.8rem;margin-bottom:1.2rem">
+      <div>
+        <p class="eyebrow">Commodity</p>
+        <p style="margin:.2rem 0;font-weight:600">{{ booking.commodity or '-' }}</p>
+      </div>
+      <div>
+        <p class="eyebrow">Pieces</p>
+        <p style="margin:.2rem 0;font-weight:600">{{ booking.pieces }}</p>
+      </div>
+      <div>
+        <p class="eyebrow">Delivery address</p>
+        <p style="margin:.2rem 0;font-weight:600;font-size:.9rem">{{ booking.deliveryAddress }}</p>
+      </div>
+      <div>
+        <p class="eyebrow">Contact</p>
+        <p style="margin:.2rem 0;font-weight:600;font-size:.9rem">{{ booking.deliveryContact }}</p>
+      </div>
+    </div>
+    <form method="POST">
+      <label style="display:block;margin-bottom:1rem">
+        <span style="font-weight:600;font-size:.9rem">Your name (driver / receiver)</span>
+        <input type="text" name="scanner_name" placeholder="e.g. John Dlamini"
+               style="display:block;width:100%;margin-top:.4rem;padding:.85rem;border:1.5px solid var(--line);border-radius:12px;font:inherit" required>
+      </label>
+      <button type="submit" class="primary-button wide-button" style="font-size:1rem;padding:.9rem">
+        OK Confirm Delivery & Generate Invoice
+      </button>
+    </form>
+  </section>
+
+  <p style="font-size:.78rem;color:var(--muted);margin-top:.8rem">Confirming will mark this shipment as <strong>Delivered</strong>, trigger invoice generation, and notify the shipper's finance team.</p>
+</div>
+{% endblock %}

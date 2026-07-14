@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="stack page-space">
+  <div class="topbar"><div><p class="eyebrow">Admin portal</p><h1>Platform settings</h1><p class="topbar-copy">Volumetric divisor, platform fees, and commission settings applied to all new quotes immediately.</p></div></div>
+  <section class="panel">
+    <div class="panel-head"><h2>Configuration</h2><p>Changes take effect on the next quote request.</p></div>
+    {% if request.method == 'POST' %}
+    <div style="background:rgba(47,108,87,.1);border:1px solid rgba(47,108,87,.3);border-radius:12px;padding:.8rem 1rem;margin-bottom:1rem;color:var(--green)">
+      <strong>Settings saved successfully.</strong> New values are active for all subsequent quotes.
+    </div>
+    {% endif %}
+    <form method="POST">
+      <div class="form-grid compact">
+        <label>Volumetric divisor
+          <input name="volumetric_divisor" type="number" value="{{ settings.volumetric_divisor }}" placeholder="4000"/>
+          <small class="muted">4000 = air freight standard | 5000 = road freight standard</small>
+        </label>
+        <label>Platform fee %
+          <input name="platform_fee_pct" type="number" step="0.1" value="{{ settings.platform_fee_pct }}" placeholder="0.0"/>
+          <small class="muted">Applied on top of supplier total in every quote</small>
+        </label>
+        <label>Commission %
+          <input name="commission_pct" type="number" step="0.1" value="{{ settings.commission_pct }}" placeholder="0.0"/>
+          <small class="muted">Revenue share captured per completed booking</small>
+        </label>
+      </div>
+      <button type="submit" class="primary-button wide-button">Apply settings</button>
+    </form>
+  </section>
+</div>
+{% endblock %}

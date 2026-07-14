@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>FreightFlow Nexus - Book freight in minutes. Track every km.</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Space+Grotesk:wght@600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root{
+      --bg:#060708;
+      --bg2:#0c0e12;
+      --panel:rgba(16,18,23,.74);
+      --panel2:rgba(22,25,32,.88);
+      --line:rgba(255,255,255,.10);
+      --line-red:rgba(239,35,60,.48);
+      --red:#ef233c;
+      --red2:#b31220;
+      --red3:#ff4d5e;
+      --text:#f8fafc;
+      --muted:#a7b0bd;
+      --muted2:#6f7886;
+      --green:#22c55e;
+      --amber:#f59e0b;
+      --radius:22px;
+      --shadow:0 28px 90px rgba(0,0,0,.48);
+    }
+    *{box-sizing:border-box}
+    html{scroll-behavior:smooth}
+    body{margin:0;background:var(--bg);color:var(--text);font-family:Inter,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;overflow-x:hidden}
+    a{text-decoration:none;color:inherit}
+    button,input,select{font:inherit;color:inherit}
+    .site{min-height:100vh;background:
+      radial-gradient(circle at 82% 5%,rgba(239,35,60,.25),transparent 34rem),
+      radial-gradient(circle at 7% 12%,rgba(239,35,60,.12),transparent 32rem),
+      linear-gradient(180deg,#050607 0%,#0b0d11 45%,#08090c 100%)}
+    .nav{position:fixed;top:0;left:0;right:0;z-index:50;height:78px;display:flex;align-items:center;justify-content:space-between;padding:0 clamp(1.1rem,3vw,3rem);background:rgba(5,6,7,.62);border-bottom:1px solid rgba(255,255,255,.06);backdrop-filter:blur(22px)}
+    .brand{display:flex;align-items:center;gap:.75rem;font-weight:900}.mark{width:48px;height:34px;position:relative;display:inline-block}.mark:before{content:"";position:absolute;left:0;top:0;width:44px;height:14px;border-radius:14px 14px 2px 2px;background:linear-gradient(135deg,var(--red),#ff3348);transform:skewX(-24deg)}.mark:after{content:"";position:absolute;left:0;top:15px;width:22px;height:17px;border-radius:0 0 5px 5px;background:linear-gradient(135deg,var(--red),#a20d19);transform:skewX(-17deg)}
+    .brand strong{display:block;font-size:1.28rem;letter-spacing:-.04em}.brand small{display:block;font-size:.62rem;letter-spacing:.42em;color:#d8dee8;margin-top:-2px}.nav-links{display:flex;align-items:center;gap:2rem;color:#d8dce4;font-size:.9rem;font-weight:800}.nav-actions{display:flex;gap:.8rem;align-items:center}.btn{display:inline-flex;align-items:center;justify-content:center;gap:.75rem;border:1px solid var(--line);border-radius:13px;padding:.92rem 1.28rem;font-weight:900;transition:.22s ease;background:rgba(255,255,255,.035)}.btn:hover{transform:translateY(-2px);border-color:rgba(255,255,255,.20)}.btn-red{background:linear-gradient(135deg,var(--red),#d81429);border-color:rgba(255,255,255,.06);box-shadow:0 18px 44px rgba(239,35,60,.34)}.btn-red:hover{box-shadow:0 24px 62px rgba(239,35,60,.45)}
+
+    .hero{position:relative;min-height:100vh;padding:118px clamp(1.1rem,3vw,3rem) 2rem;display:grid;grid-template-columns:minmax(420px,.86fr) minmax(420px,1fr);gap:2rem;align-items:center;overflow:hidden}.hero-bg{position:absolute;inset:0;background-image:linear-gradient(90deg,rgba(5,6,7,.96) 0%,rgba(5,6,7,.84) 29%,rgba(5,6,7,.24) 58%,rgba(5,6,7,.72) 100%),linear-gradient(180deg,rgba(5,6,7,.25) 0%,rgba(5,6,7,.22) 60%,#060708 100%),url("{{ url_for('static', filename='img/ffn-warehouse-hero.png') }}");background-size:cover;background-position:center center;filter:saturate(1.12) contrast(1.05);z-index:0}.hero-bg:after{content:"";position:absolute;inset:0;background:radial-gradient(circle at 62% 28%,rgba(239,35,60,.22),transparent 25rem),radial-gradient(circle at 22% 85%,rgba(239,35,60,.10),transparent 30rem)}.hero-copy,.quote-card{position:relative;z-index:2}.pill{display:inline-flex;align-items:center;gap:.5rem;border:1px solid rgba(239,35,60,.38);background:rgba(239,35,60,.12);border-radius:999px;padding:.48rem .78rem;color:#fecdd3;font-size:.72rem;font-weight:900;text-transform:uppercase;letter-spacing:.14em}.pill:before{content:"";width:7px;height:7px;border-radius:50%;background:var(--red);box-shadow:0 0 20px rgba(239,35,60,.9)}.hero h1{font-family:"Space Grotesk",Inter,sans-serif;font-size:clamp(3.2rem,5.5vw,5.5rem);line-height:.88;letter-spacing:-.075em;margin:1.15rem 0 1rem;text-shadow:0 22px 80px rgba(0,0,0,.60)}.hero h1 span{color:var(--red)}.hero .lead{max-width:590px;color:#d9dee7;font-size:clamp(1.05rem,1.4vw,1.32rem);line-height:1.65;margin:0 0 1.6rem}.hero-actions{display:flex;flex-wrap:wrap;gap:1rem;margin:1.55rem 0 1.25rem}.social-proof{display:flex;gap:.85rem;align-items:center;color:#ccd3dd;font-weight:600}.trust-strip{flex-wrap:wrap;margin-top:.85rem}.trust-chip{display:inline-flex;align-items:center;border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.055);border-radius:999px;padding:.42rem .68rem;font-size:.78rem;font-weight:900;color:#fff}.trust-copy{color:#cbd5e1;font-size:.9rem}.avatar-row{display:flex}.avatar{width:30px;height:30px;border-radius:50%;border:2px solid #15171d;background:linear-gradient(135deg,#334155,#111827);margin-left:-8px}.avatar:first-child{margin-left:0}.count-badge{display:grid;place-items:center;width:34px;height:30px;border-radius:999px;background:var(--red);font-size:.75rem;font-weight:900;margin-left:-8px}
+    .quote-card{align-self:center;justify-self:end;width:min(100%,520px);background:linear-gradient(180deg,rgba(22,25,32,.86),rgba(10,12,16,.93));border:1px solid rgba(255,255,255,.13);box-shadow:var(--shadow);backdrop-filter:blur(24px) saturate(1.2);border-radius:24px;padding:1.35rem}.quote-card h2{font-family:"Space Grotesk";font-size:1.45rem;margin:0 0 1.05rem}.tabs{display:flex;gap:1.4rem;border-bottom:1px solid rgba(255,255,255,.09);margin-bottom:1rem}.tab{padding:.75rem 0;font-weight:800;color:#8e98a8}.tab.active{color:#fff;border-bottom:2px solid var(--red)}.route-grid{display:grid;grid-template-columns:1fr auto 1fr;gap:.8rem}.input-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:.8rem;margin-top:.8rem}.field{background:rgba(255,255,255,.055);border:1px solid rgba(255,255,255,.09);border-radius:15px;padding:1rem}.field label{display:block;color:#8f9aa9;font-size:.70rem;text-transform:uppercase;letter-spacing:.08em;margin-bottom:.42rem}.field strong{font-size:1rem}.swap{width:42px;height:42px;border-radius:50%;background:linear-gradient(135deg,var(--red),#cf1124);display:grid;place-items:center;align-self:center;box-shadow:0 16px 34px rgba(239,35,60,.33)}.quote-list{display:grid;gap:.65rem;margin:1.1rem 0}.quote{display:flex;align-items:center;justify-content:space-between;gap:1rem;padding:.9rem;border:1px solid rgba(255,255,255,.09);border-radius:15px;background:rgba(255,255,255,.045)}.quote.active{border-color:rgba(239,35,60,.72);background:linear-gradient(90deg,rgba(239,35,60,.16),rgba(255,255,255,.035))}.quote b{display:block}.quote small{display:block;color:#99a4b4;margin-top:.22rem}.quote .price{font-weight:900;color:#ff5363}.quote-card .btn{width:100%;margin-top:.2rem}.available{display:flex;align-items:center;gap:.5rem;color:#d3d9e2;font-size:.88rem;margin-top:.8rem}.available i{width:9px;height:9px;border-radius:50%;background:var(--green);box-shadow:0 0 16px rgba(34,197,94,.8)}
+
+    .metric-row{position:relative;z-index:2;grid-column:1/-1;display:grid;grid-template-columns:repeat(6,1fr);gap:1rem;margin-top:-1.2rem}.metric{background:linear-gradient(180deg,rgba(255,255,255,.075),rgba(255,255,255,.032));border:1px solid rgba(255,255,255,.10);border-radius:18px;padding:1.25rem;box-shadow:0 20px 54px rgba(0,0,0,.25);backdrop-filter:blur(14px)}.metric .icon{width:34px;height:34px;color:var(--red);margin-bottom:.7rem}.metric strong{display:block;font-size:1.55rem;letter-spacing:-.05em}.metric span{display:block;color:#c3cad5;font-size:.84rem;margin-top:.25rem}.metric small{display:block;color:#6ee787;margin-top:.48rem;font-weight:800}
+
+    .section{padding:4.5rem clamp(1.1rem,3vw,3rem);position:relative}.section-title{display:flex;justify-content:space-between;align-items:end;gap:2rem;margin-bottom:1.2rem}.section-title h2{font-family:"Space Grotesk";font-size:clamp(2rem,3.6vw,3.8rem);line-height:1;margin:0;letter-spacing:-.055em}.section-title p{color:var(--muted);max-width:650px;line-height:1.65}.link-red{color:var(--red);font-weight:900}.equipment,.vehicle-carousel{display:grid;grid-auto-flow:column;grid-auto-columns:minmax(245px,1fr);gap:1rem;overflow-x:auto;scroll-snap-type:x mandatory;padding-bottom:.75rem}.vehicle-carousel::-webkit-scrollbar{height:7px}.vehicle-carousel::-webkit-scrollbar-thumb{background:rgba(239,35,60,.55);border-radius:999px}.equip{scroll-snap-align:start;background:linear-gradient(180deg,rgba(255,255,255,.06),rgba(255,255,255,.025));border:1px solid rgba(255,255,255,.10);border-radius:20px;overflow:hidden;transition:.22s ease;box-shadow:0 18px 52px rgba(0,0,0,.25)}.equip:hover{transform:translateY(-5px);border-color:rgba(239,35,60,.42);box-shadow:0 30px 70px rgba(0,0,0,.42)}.equip.recommended{border-color:rgba(239,35,60,.80);box-shadow:0 0 0 1px rgba(239,35,60,.2),0 25px 70px rgba(239,35,60,.12)}.equip-img{height:152px;background:#111;overflow:hidden}.equip-img img{width:100%;height:100%;object-fit:cover;display:block;filter:saturate(1.1) contrast(1.05)}.equip-body{padding:1rem}.badge{display:inline-flex;padding:.32rem .55rem;border-radius:8px;background:rgba(239,35,60,.16);color:#fecdd3;border:1px solid rgba(239,35,60,.30);font-size:.68rem;font-weight:900;text-transform:uppercase;letter-spacing:.04em;margin-bottom:.65rem}.equip h3{font-size:1.05rem;margin:.1rem 0 .3rem}.equip p{color:var(--muted);margin:.25rem 0 .75rem;font-size:.86rem;line-height:1.45}.equip ul{list-style:none;margin:0;padding:0;display:grid;gap:.42rem;color:#d8dde6;font-size:.82rem}.equip li:before{content:"OK";color:var(--green);margin-right:.45rem}.equip-foot{display:flex;justify-content:space-between;align-items:center;margin-top:.95rem;padding-top:.85rem;border-top:1px solid rgba(255,255,255,.08);color:#cdd3de;font-size:.82rem}.from{font-weight:900;color:#fff}.carousel-hint{color:var(--muted);font-size:.86rem;margin-top:.85rem;text-align:center}.equip-foot{gap:.65rem}.equip-foot .from{color:#fff}.equip-foot span:last-child{color:#a7b0bd}
+
+    .grid-2{display:grid;grid-template-columns:1.05fr .95fr;gap:1rem}.panel{background:linear-gradient(180deg,rgba(255,255,255,.065),rgba(255,255,255,.025));border:1px solid rgba(255,255,255,.10);border-radius:22px;padding:1.25rem;box-shadow:0 20px 64px rgba(0,0,0,.27);backdrop-filter:blur(14px)}.ai-card{display:grid;grid-template-columns:.9fr 1.1fr;gap:1rem;align-items:center}.recommend{background:rgba(0,0,0,.18);border:1px solid rgba(255,255,255,.09);border-radius:18px;padding:1rem}.recommend .best{display:inline-flex;background:rgba(34,197,94,.16);color:#bbf7d0;border:1px solid rgba(34,197,94,.30);font-weight:900;font-size:.7rem;border-radius:999px;padding:.28rem .52rem}.recommend h3{font-size:1.35rem;margin:.7rem 0 .2rem}.recommend .amount{font-size:2rem;color:var(--red);font-weight:900;margin:1rem 0 .35rem}.score-bars{display:grid;gap:.9rem}.bar-row{display:grid;grid-template-columns:110px 1fr 80px;gap:.9rem;align-items:center;color:#d5dbe5}.bar{height:7px;border-radius:999px;background:rgba(255,255,255,.10);overflow:hidden}.bar span{display:block;height:100%;border-radius:999px;background:linear-gradient(90deg,var(--green),#86efac)}.bar.warn span{background:linear-gradient(90deg,var(--amber),#fde68a)}.capacity{display:grid;grid-template-columns:repeat(3,1fr);gap:.7rem}.cap-box{background:rgba(255,255,255,.045);border:1px solid rgba(255,255,255,.08);border-radius:15px;padding:1rem}.cap-box small{display:block;color:#8f99a8}.cap-box strong{font-size:1.25rem}.progress{height:8px;border-radius:999px;background:rgba(255,255,255,.10);overflow:hidden;margin:.7rem 0}.progress span{display:block;height:100%;width:72%;background:linear-gradient(90deg,var(--amber),#fbbf24)}.progress.good span{width:96%;background:linear-gradient(90deg,var(--green),#86efac)}
+
+    .workflow{display:grid;grid-template-columns:minmax(0,1.45fr) minmax(320px,.75fr);gap:1rem;align-items:stretch}.tracking-map-panel{position:relative;min-height:560px;border-radius:24px;overflow:hidden;border:1px solid rgba(255,255,255,.12);background:#071018;box-shadow:var(--shadow)}.tracking-side-panel{display:grid;gap:1rem}.timeline{display:grid;gap:.78rem}.step{display:grid;grid-template-columns:22px 1fr auto;gap:.78rem;align-items:center}.step i{width:15px;height:15px;border-radius:50%;background:#3d4350}.step.done i{background:var(--red);box-shadow:0 0 0 7px rgba(239,35,60,.13)}.step small{color:var(--muted)}.timeline{display:grid;gap:.78rem}.step{display:grid;grid-template-columns:22px 1fr auto;gap:.78rem;align-items:center}.step i{width:15px;height:15px;border-radius:50%;background:#3d4350}.step.done i{background:var(--red);box-shadow:0 0 0 7px rgba(239,35,60,.13)}.step small{color:var(--muted)}.use-cases{display:grid;grid-template-columns:repeat(4,1fr);gap:1rem}.use-cases strong{display:block;font-size:1.15rem;margin-bottom:.4rem}.use-cases p{color:var(--muted);line-height:1.55;margin:0}.footer{padding:2.5rem clamp(1.1rem,3vw,3rem);border-top:1px solid rgba(255,255,255,.08);color:#9fa8b6;display:flex;justify-content:space-between;gap:1rem;flex-wrap:wrap}
+
+    @media(max-width:1120px){.hero{grid-template-columns:1fr}.quote-card{justify-self:stretch;max-width:720px}.metric-row{grid-template-columns:repeat(3,1fr)}.grid-2,.workflow{grid-template-columns:1fr}.use-cases{grid-template-columns:repeat(2,1fr)}}
+    @media(max-width:720px){.nav-links{display:none}.nav{height:68px}.brand small{display:none}.hero{padding-top:96px}.hero h1{font-size:3.5rem}.quote-card{border-radius:18px}.route-grid,.input-grid,.metric-row,.use-cases,.ai-card,.capacity{grid-template-columns:1fr}.vehicle-carousel{grid-auto-columns:82vw}.section{padding:3.5rem 1rem}.section-title{display:block}.nav-actions .btn-ghost{display:none}.hero-bg{background-position:center top}.metric-row{margin-top:0}}
+  </style>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/ffn-sa-map.css') }}">
+</head>
+<body>
+<div class="site">
+  <nav class="nav">
+    <a href="/" class="brand"><span class="mark"></span><span><strong>FreightFlow</strong><small>NEXUS</small></span></a>
+    <div class="nav-links"><a href="#equipment">Solutions</a><a href="#shipper">For Shippers</a><a href="#carrier">For Carriers</a><a href="#workflow">Resources</a><a href="#portals">Company</a></div>
+    <div class="nav-actions"><a class="btn" href="{{ url_for('auth.login') }}">Log in</a><a class="btn btn-red" href="{{ url_for('auth.login') }}">Get Started</a></div>
+  </nav>
+
+  <header class="hero">
+    <div class="hero-bg" aria-hidden="true"></div>
+    <section class="hero-copy">
+      <span class="pill">Built for SA freight, DC moves and last-mile delivery</span>
+      <h1>Freight,<br>moved <span>smarter.</span></h1>
+      <p class="lead">Compare real-time quotes. Book trusted carriers. Track every step. Get proof of delivery. Built for palletised freight, DC-to-DC moves and small business loads.</p>
+      <div class="hero-actions"><a class="btn btn-red" href="{{ url_for('auth.login') }}">Start a Shipment →</a><a class="btn" href="{{ url_for('public.onboarding') }}">Become a Carrier →</a></div>
+      <div class="social-proof trust-strip"><span class="trust-chip">Retail</span><span class="trust-chip">Manufacturing</span><span class="trust-chip">SMEs</span><span class="trust-chip">Cold Chain</span><span class="trust-chip">Mining</span><span class="trust-copy">Serving freight movements across South Africa</span></div>
+    </section>
+
+    <aside class="quote-card">
+      <h2>Get quotes in minutes</h2>
+      <div class="tabs"><span class="tab active">Freight</span><span class="tab">Bakkie / Small Loads</span></div>
+      <div class="route-grid"><div class="field"><label>Pickup</label><strong>Durban, KZN</strong></div><div class="swap">↔</div><div class="field"><label>Drop-off</label><strong>Johannesburg, GP</strong></div></div>
+      <div class="input-grid"><div class="field"><label>Cargo type</label><strong>Pallets</strong></div><div class="field"><label>Quantity</label><strong>10</strong></div><div class="field"><label>Weight (kg)</label><strong>2,400</strong></div></div>
+      <div class="quote-list"><div class="quote active"><span><b>Cargo Movers</b><small>11h ETA - 98% acceptance</small></span><span class="price">R18,900</span></div><div class="quote"><span><b>Rapid Logistics</b><small>12h ETA - 96% acceptance</small></span><span class="price">R20,100</span></div><div class="quote"><span><b>Fast Freight</b><small>13h ETA - 99% acceptance</small></span><span class="price">R21,200</span></div></div>
+      <a class="btn btn-red" href="{{ url_for('auth.login') }}">Find Quotes →</a>
+      <div class="available"><i></i><span>3 live quotes available</span></div>
+    </aside>
+
+    <div class="metric-row">
+      <div class="metric"><div class="icon"></div><strong>98%</strong><span>On-time delivery</span><small>up 8% vs last month</small></div>
+      <div class="metric"><div class="icon"></div><strong>12h</strong><span>Avg. carrier response</span><small>up 2h faster</small></div>
+      <div class="metric"><div class="icon">*</div><strong>4.8 / 5</strong><span>Carrier rating</span><small>up 0.3 improvement</small></div>
+      <div class="metric"><div class="icon"></div><strong>24h</strong><span>Avg. payout time</span><small>up 12% faster</small></div>
+      <div class="metric"><div class="icon"></div><strong>1,000+</strong><span>Verified carriers</span></div>
+      <div class="metric"><div class="icon"></div><strong>Secure</strong><span>Payments & data</span></div>
+    </div>
+  </header>
+
+  <section class="section platform-proof">
+    <div class="proof-grid">
+      <article class="panel proof-card"><strong>1,200+</strong><span>SA carriers and vehicles represented in the demo network</span></article>
+      <article class="panel proof-card"><strong>50+</strong><span>priority corridors across Gauteng, KZN, Western Cape and inland routes</span></article>
+      <article class="panel proof-card"><strong>12h</strong><span>supplier acceptance window before escalation or reallocation</span></article>
+      <article class="panel proof-card"><strong>24h</strong><span>target payout cycle after delivery proof is approved</span></article>
+    </div>
+    <div class="pillar-grid">
+      <article class="panel pillar"><span>SOURCE</span><h3>Get Quotes</h3><p>Compare supplier options by price, reliability, proximity, vehicle fit and risk.</p></article>
+      <article class="panel pillar"><span>MOVE</span><h3>Book & Track</h3><p>Generate labels, supplier POs, assign drivers and monitor the route live.</p></article>
+      <article class="panel pillar"><span>CLOSE</span><h3>Get Proof</h3><p>Capture QR collection, digital POD, invoice status and payout readiness.</p></article>
+    </div>
+  </section>
+
+  <section class="section" id="equipment">
+    <div class="section-title"><div><span class="pill">Equipment marketplace</span><h2>All vehicle types, shown clearly.</h2><p>No guessing from a dropdown. Customers can see what each vehicle looks like, what it carries and when it is suitable.</p></div><a class="link-red" href="{{ url_for('auth.login') }}">View all vehicles →</a></div>
+    <div class="vehicle-carousel" aria-label="All FreightFlow vehicle types">
+      {% set vehicles = [
+        ('Bakkie / LDV','Small business friendly','1-2 Pallets','500kg-1.5t','SMEs - furniture - retail','bakkie-ldv.jpg','Local / regional','Best for small loads'),
+        ('Panel Van','Fast city movement','2-4 Pallets','1t-2t','Express - medical - retail','panel-van.jpg','City / express','Secure enclosed cargo'),
+        ('4 Ton Truck','Regional freight','6-10 Pallets','2t-4t','Regional - general - bulk','four-ton.jpg','Regional','Best match for medium loads'),
+        ('5 Ton Truck','Medium commercial freight','8-12 Pallets','3t-5t','Regional - bulk - FMCG','five-ton.jpg','Regional','More capacity than 4 Ton'),
+        ('8 Ton Rigid','Large local/regional freight','12-16 Pallets','5t-8t','Retail - FMCG - general','eight-ton.jpg','Regional / DC','Good capacity without trailer'),
+        ('Curtainsider','Weather protected side loading','20-26 Pallets','10t-14t','FMCG - retail - general','curtainsider.jpg','Long distance','Side loading + cover'),
+        ('Tautliner','Curtain-sided linehaul','20-26 Pallets','10t-14t','FMCG - furniture - retail','tautliner.jpg','Long distance','Curtain access'),
+        ('Superlink','Long-haul high capacity','20-26 Pallets','20t-24t','Long haul - bulk - retail','superlink.jpg','Long haul','High volume'),
+        ('Refrigerated Truck','Temperature controlled','16-22 Pallets','7t-18t','Cold chain - food - pharma','refrigerated-truck.jpg','Cold chain','Temperature control'),
+        ('Flatbed','Open deck freight','Up to 20 Pallets','11t-22t','Machinery - construction','flatbed.jpg','Specialist','Open/top loading'),
+        ('Lowbed','Heavy machinery transport','Specialist','20t+','Plant - mining - abnormal','lowbed.jpg','Heavy haul','Low deck height'),
+        ('Skeletal Trailer','Container transport','20ft / 40ft','Container payload','Port - container - DC','skeletal-trailer.jpg','Container','ISO containers')
+      ] %}
+      {% for name,subtitle,pallets,payload,best,img,range,note in vehicles %}
+      <article class="equip {{ 'recommended' if loop.first else '' }}">
+        <div class="equip-img"><img src="{{ url_for('static', filename='img/vehicles/' ~ img) }}" alt="{{ name }} vehicle"></div>
+        <div class="equip-body"><span class="badge">{{ 'Recommended for SMEs' if loop.first else range }}</span><h3>{{ name }}</h3><p>{{ subtitle }}</p><ul><li>{{ pallets }}</li><li>{{ payload }}</li><li>{{ best }}</li></ul><div class="equip-foot"><span class="from">{{ note }}</span><span>{{ range }}</span></div></div>
+      </article>
+      {% endfor %}
+    </div>
+    <div class="carousel-hint">← Scroll to view Bakkies, vans, rigids, trailers, cold chain and container equipment →</div>
+  </section>
+
+  <section class="section">
+    <div class="grid-2">
+      <div class="panel ai-card">
+        <div class="recommend"><span class="best">Best Match</span><h3>Cargo Movers</h3><small>96% acceptance</small><div class="amount">R18,900</div><small>11h ETA - 98% on-time</small></div>
+        <div><span class="pill">Kargo AI Recommendation</span><div class="score-bars" style="margin-top:1rem"><div class="bar-row"><span>Price</span><div class="bar"><span style="width:92%"></span></div><strong>Excellent</strong></div><div class="bar-row"><span>Reliability</span><div class="bar"><span style="width:94%"></span></div><strong>Excellent</strong></div><div class="bar-row"><span>Proximity</span><div class="bar warn"><span style="width:62%"></span></div><strong>Good</strong></div><div class="bar-row"><span>Equipment Fit</span><div class="bar"><span style="width:96%"></span></div><strong>Perfect</strong></div><div class="bar-row"><span>Risk Level</span><div class="bar"><span style="width:88%"></span></div><strong>Low</strong></div></div></div>
+      </div>
+      <div class="panel"><span class="pill">Capacity calculator</span><h2 style="font-family:Space Grotesk;font-size:2.1rem;margin:1rem 0">Will your cargo fit?</h2><div class="capacity"><div class="cap-box"><small>Pallets</small><strong>10</strong></div><div class="cap-box"><small>Weight</small><strong>2,400</strong></div><div class="cap-box"><small>Volume</small><strong>18m3</strong></div></div><p style="color:var(--muted);line-height:1.55">Kargo AI checks weight, pallets, volume, route and vehicle type before suggesting a carrier.</p><strong>Recommended: Curtainsider</strong><div class="progress good"><span></span></div><small style="color:var(--muted)">96% capacity match</small><br><br><strong>Alternative: 4 Ton Truck</strong><div class="progress"><span></span></div><small style="color:var(--muted)">72% capacity match</small></div>
+    </div>
+  </section>
+
+  <section class="section operations-section" id="workflow">
+    <div class="operations-frame">
+      <div class="operations-map-wrap">
+        <div class="ops-copy">
+          <span class="pill live-pill">Live operations</span>
+          <h2>From quote to proof of delivery.</h2>
+          <p>Track the real Johannesburg to Durban corridor with live truck position, route progress, ETA, vehicle, supplier and shipment documents in one control-tower view.</p>
+        </div>
+        <div class="ops-summary-card">
+          <div class="ops-route-line"><span class="origin-dot"></span><div><small>Origin</small><strong>Johannesburg, GP</strong></div></div>
+          <div class="ops-route-line"><span class="dest-dot"></span><div><small>Destination</small><strong>Durban, KZN</strong></div></div>
+          <div class="ops-mini-stats"><div><small>Distance</small><strong>570 km</strong></div><div><small>ETA</small><strong>5h 45m</strong></div><div><small>Vehicle</small><strong>Curtainsider</strong></div></div>
+          <a class="ops-full-route" href="{{ url_for('auth.login') }}">View full route</a>
+        </div>
+        <div class="ffn-sa-map-shell operations-map control-tower-map" data-map-mode="controltower" data-origin="Johannesburg, GP" data-destination="Durban, KZN" data-current="Pietermaritzburg" data-status="In Transit" data-summary="Live truck near Pietermaritzburg - 120 km from destination">
+          <div class="ffn-sa-map"></div>
+        </div>
+      </div>
+      <aside class="ops-side-rail">
+        <div class="ops-actions"><a class="btn-ghost" href="{{ url_for('auth.login') }}">Track Live</a><a class="btn-ghost" href="{{ url_for('auth.login') }}">Download Waybill</a></div>
+        <div class="ops-card shipment-id"><span>Shipment ID</span><strong>FFN-2026-1023</strong><em>In Transit</em></div>
+        <div class="ops-card timeline-card"><h3>Shipment Timeline</h3><div class="ops-timeline">
+          {% for item, state, time in [('Quote Accepted','done','02 May 2026 - 09:15'),('Supplier Accepted','done','02 May 2026 - 09:45'),('PO Created','done','02 May 2026 - 09:50'),('Driver Assigned','done','02 May 2026 - 09:50'),('Collected','done','02 May 2026 - 10:20'),('In Transit','active','02 May 2026 - 10:30'),('Arriving','pending','Pending'),('Delivered','pending','Pending'),('POD Uploaded','pending','Pending'),('Paid','pending','Pending')] %}
+          <div class="ops-step {{ state }}"><i></i><div><strong>{{ item }}</strong><small>{{ time }}</small></div></div>
+          {% endfor %}
+        </div></div>
+        <div class="ops-card live-card"><div><strong>Live Tracking</strong><span class="live-badge">Live</span></div><small>Last updated: Just now</small><div class="ops-progress"><span style="width:78%"></span></div><p>120 km to destination</p></div>
+        <div class="ops-card vehicle-card"><img src="{{ url_for('static', filename='img/curtainsider.png') }}" alt="Curtainsider vehicle"><div><strong>Curtainsider</strong><small>ND 123 456</small><span>20 - 26 pallets</span></div><a href="{{ url_for('auth.login') }}">Driver Details</a></div>
+        <div class="ops-card supplier-card"><strong>MoveCargo</strong><small>4.9 rating - 97% on-time</small><a href="{{ url_for('auth.login') }}">View Supplier</a></div>
+        <div class="ops-card docs-card"><h3>Documents</h3><div><a href="{{ url_for('auth.login') }}">Waybill<br><small>Download</small></a><a href="{{ url_for('auth.login') }}">POD<br><small>Pending</small></a><a href="{{ url_for('auth.login') }}">Invoice<br><small>Pending</small></a></div></div>
+      </aside>
+      <div class="ops-progress-strip">
+        {% for item,state,time in [('Quote Selected','done','02 May, 09:15'),('Label Generated','done','02 May, 09:25'),('PO Created','done','02 May, 09:35'),('Driver Assigned','done','02 May, 09:50'),('Collected','done','02 May, 10:20'),('In Transit','active','Active'),('Delivered','pending','Pending'),('POD Upload','pending','Pending')] %}
+        <div class="strip-step {{ state }}"><i></i><strong>{{ item }}</strong><small>{{ time }}</small></div>
+        {% endfor %}
+      </div>
+    </div>
+  </section>
+
+  <section class="section carrier-acquisition">
+    <div class="section-title"><div><span class="pill">For carriers</span><h2>More jobs, less admin.</h2><p>Transporters receive digital booking requests, instant POs, driver dispatch tools, POD capture and payout tracking in one workspace.</p></div><a class="link-red" href="{{ url_for('public.onboarding') }}">Join the carrier network →</a></div>
+    <div class="use-cases carrier-grid">
+      <div class="panel"><strong>Instant job requests</strong><p>Accept or reject paid bookings with a clear 12-hour supplier SLA.</p></div>
+      <div class="panel"><strong>Automatic purchase orders</strong><p>Every accepted booking generates a supplier PO with route, cargo and rate details.</p></div>
+      <div class="panel"><strong>Driver and fleet dispatch</strong><p>Assign the right available driver and vehicle using visual cards.</p></div>
+      <div class="panel"><strong>Payout visibility</strong><p>Track invoice, POD and payout readiness from delivery to payment.</p></div>
+    </div>
+  </section>
+
+  <section class="section" id="portals">
+    <div class="section-title"><div><span class="pill">Built for every operator</span><h2>Large freight and small-business movement.</h2></div></div>
+    <div class="use-cases"><div class="panel"><strong>Small businesses</strong><p>Bakkies, LDVs and local store transfers.</p></div><div class="panel"><strong>Retailers</strong><p>Pallet labels, supplier quotes and DC-to-DC movement.</p></div><div class="panel"><strong>Carriers</strong><p>Jobs, POs, driver assignment and payout tracking.</p></div><div class="panel"><strong>Drivers</strong><p>Navigation, QR scans, signatures and POD photo upload.</p></div></div>
+  </section>
+
+  <footer class="footer"><strong>FreightFlow Nexus</strong><span>Built for SA freight, DC moves and last-mile delivery</span></footer>
+</div>
+
+<script src="{{ url_for('static', filename='js/ffn-sa-map.js') }}"></script>
+{% if google_maps_key %}<script src="https://maps.googleapis.com/maps/api/js?key={{ google_maps_key }}&v=weekly&callback=initFfnSaMaps" async defer></script>{% endif %}
+</body>
+</html>

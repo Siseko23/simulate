@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="stack page-space">
+  <div class="topbar">
+    <div>
+      <p class="eyebrow">Supplier portal</p>
+      <h1>Driver logins</h1>
+      <p class="topbar-copy">Each driver uses their phone number + PIN to log into the driver app. Reset a PIN if a driver forgets theirs.</p>
+    </div>
+  </div>
+
+  <div class="table-like">
+    {% for d in drivers %}
+    <div class="table-row" style="flex-wrap:wrap;gap:.6rem">
+      <div style="flex:1">
+        <strong>{{ d.name }}</strong>
+        <p class="muted" style="font-size:.82rem;margin:.2rem 0 0">{{ d.phone or 'No phone on file' }}</p>
+      </div>
+      <div>
+        <p style="margin:0;font-size:.85rem">PIN: <strong style="font-family:monospace;letter-spacing:.1em">{{ d.pin }}</strong></p>
+        <p class="muted" style="font-size:.78rem;margin:.1rem 0 0">{{ d.status }}</p>
+      </div>
+      <form method="POST" action="{{ url_for('supplier.reset_driver_pin', driver_id=d.id) }}" onsubmit="return confirm('Generate a new PIN for {{ d.name }}?')">
+        <button type="submit" class="ghost-button" style="font-size:.82rem">Refresh Reset PIN</button>
+      </form>
+    </div>
+    {% else %}
+    <p class="muted" style="text-align:center;padding:1rem">No drivers added yet.</p>
+    {% endfor %}
+  </div>
+</div>
+{% endblock %}

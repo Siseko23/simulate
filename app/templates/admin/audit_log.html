@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="stack page-space">
+  <div class="topbar">
+    <div>
+      <p class="eyebrow">Admin portal</p>
+      <h1>Audit log</h1>
+      <p class="topbar-copy">Recent platform events, user actions and system lifecycle changes.</p>
+    </div>
+  </div>
+  <section class="panel">
+    <div class="table-like">
+      {% for log in logs %}
+      <div class="table-row" style="align-items:flex-start;gap:1rem">
+        <div style="min-width:145px"><strong>{{ log.created_at.strftime('%d %b %Y %H:%M') if log.created_at else '-' }}</strong></div>
+        <div style="min-width:130px"><span class="pill">{{ log.action or 'Action' }}</span></div>
+        <div style="flex:1">
+          <p style="margin:0"><strong>{{ log.entity_type or 'Entity' }}</strong> {{ log.entity_id or '' }}</p>
+          <p class="muted" style="margin:.15rem 0 0;font-size:.82rem">{{ log.details or 'No details captured.' }}</p>
+        </div>
+        <div style="min-width:130px;text-align:right" class="muted">{{ log.user.full_name if log.user else 'System' }}</div>
+      </div>
+      {% else %}
+      <div class="empty-card" style="padding:2rem;text-align:center"><p class="muted">No audit events found yet.</p></div>
+      {% endfor %}
+    </div>
+  </section>
+</div>
+{% endblock %}

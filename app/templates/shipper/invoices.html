@@ -1,0 +1,70 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="stack page-space">
+  <div class="topbar">
+    <div>
+      <p class="eyebrow">Shipper portal</p>
+      <h1>{{ page_heading or 'Invoices' }}</h1>
+      <p class="topbar-copy">Tax invoices for all your FreightFlow bookings.</p>
+    </div>
+  </div>
+
+  <div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:1rem;margin-bottom:.5rem">
+    {% set total_invoiced = invoices|sum(attribute='total_amount') %}
+    {% set paid = invoices|selectattr('status','equalto','Paid')|list %}
+    {% set unpaid = invoices|selectattr('status','equalto','Unpaid')|list %}
+    {% set overdue = invoices|selectattr('status','equalto','Overdue')|list %}
+    <div class="panel" style="text-align:center;padding:1rem">
+      <p class="eyebrow" style="margin-bottom:.3rem">Total invoiced</p>
+      <p style="font-size:1.5rem;font-weight:800;color:var(--accent)">R {{ '{:,.0f}'.format(total_invoiced) }}</p>
+      <p class="muted" style="font-size:.78rem">{{ invoices|length }} invoices</p>
+    </div>
+    <div class="panel" style="text-align:center;padding:1rem">
+      <p class="eyebrow" style="margin-bottom:.3rem">Paid</p>
+      <p style="font-size:1.5rem;font-weight:800;color:#1a6b3c">R {{ '{:,.0f}'.format(paid|sum(attribute='total_amount')) }}</p>
+      <p class="muted" style="font-size:.78rem">{{ paid|length }} invoices</p>
+    </div>
+    <div class="panel" style="text-align:center;padding:1rem">
+      <p class="eyebrow" style="margin-bottom:.3rem">Unpaid</p>
+      <p style="font-size:1.5rem;font-weight:800;color:#7a5800">R {{ '{:,.0f}'.format(unpaid|sum(attribute='total_amount')) }}</p>
+      <p class="muted" style="font-size:.78rem">{{ unpaid|length }} invoices</p>
+    </div>
+    <div class="panel" style="text-align:center;padding:1rem">
+      <p class="eyebrow" style="margin-bottom:.3rem">Overdue</p>
+      <p style="font-size:1.5rem;font-weight:800;color:#9b1c1c">R {{ '{:,.0f}'.format(overdue|sum(attribute='total_amount')) }}</p>
+      <p class="muted" style="font-size:.78rem">{{ overdue|length }} invoices</p>
+    </div>
+  </div>
+
+  <section class="panel">
+    <div class="table-like">
+      {% for inv in invoices %}
+      <div class="table-row" style="flex-wrap:wrap;gap:.8rem;align-items:center">
+        <div style="flex:1.2;min-width:160px">
+          <strong style="font-size:.95rem">{{ inv.invoice_number }}</strong>
+          <p class="muted" style="font-size:.8rem;margin:.2rem 0 0">Booking: <a href="{{ url_for('shipper.booking_detail', ref=inv.booking.ref) }}" style="color:var(--accent)">{{ inv.booking.ref }}</a></p>
+          <p style="font-size:.76rem;margin:.1rem 0 0;color:var(--muted)">Issued {{ inv.created_at.strftime('%d %b %Y') if inv.created_at else '-' }} - Due {{ inv.due_date.strftime('%d %b %Y') if inv.due_date else '-' }}</p>
+        </div>
+        <div style="flex:1.4;min-width:160px">
+          <p style="margin:0;font-size:.88rem">{{ inv.booking.route }}</p>
+          <p class="muted" style="font-size:.78rem;margin:.1rem 0 0">{{ inv.booking.supplier.company_name if inv.booking.supplier else '-' }}</p>
+        </div>
+        <div style="text-align:right">
+          <p style="margin:0;font-weight:700">R {{ '{:,.0f}'.format(inv.total_amount or 0) }}</p>
+          <span class="pill" style="font-size:.72rem;font-weight:700;padding:.2rem .6rem;border-radius:999px;
+            {% if inv.status=='Paid' %}background:#dcfce7;color:#166534
+            {% elif inv.status=='Overdue' %}background:#fee2e2;color:#991b1b
+            {% else %}background:#fef3c7;color:#92400e{% endif %}">{{ inv.status }}</span>
+        </div>
+        <a href="{{ url_for('shipper.view_invoice', invoice_id=inv.id) }}" class="ghost-button" style="font-size:.82rem;padding:.5rem 1rem;text-decoration:none">View invoice</a>
+        {% if inv.status != 'Paid' %}
+        <a href="{{ url_for('shipper.pay_booking', ref=inv.booking.ref) }}" class="primary-button" style="font-size:.82rem;padding:.5rem 1rem">Pay now</a>
+        {% endif %}
+      </div>
+      {% else %}
+      <p class="muted" style="text-align:center;padding:1.5rem">No invoices yet.</p>
+      {% endfor %}
+    </div>
+  </section>
+</div>
+{% endblock %}

@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+{% block content %}
+<link rel="manifest" href="{{ url_for('static', filename='driver/manifest.json') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='driver/driver-pwa.css') }}">
+<div class="driver-phone-shell">
+  <section class="driver-hero-card">
+    <div>
+      <span class="driver-eyebrow">FreightFlow Driver</span>
+      <h1>Today&apos;s jobs</h1>
+      <p>Navigate, scan collection, share location, deliver and upload POD.</p>
+    </div>
+    <div class="driver-avatar">{{ driver.name[:1] if driver.name else 'D' }}</div>
+  </section>
+
+  <section class="driver-stats-grid">
+    <article><strong>{{ jobs|length }}</strong><span>Active</span></article>
+    <article><strong>{{ completed_today }}</strong><span>Delivered</span></article>
+  </section>
+
+  <section class="driver-card-stack">
+    <div class="driver-section-title">Assigned jobs</div>
+    {% for job in jobs %}
+    <a class="driver-job-tile" href="{{ url_for('driver.app_job', ref=job.ref) }}">
+      <div class="driver-job-main">
+        <strong>{{ job.ref }}</strong>
+        <span>{{ job.collectionCity or job.collectionAddress }} to {{ job.deliveryCity or job.deliveryAddress }}</span>
+      </div>
+      <div class="driver-job-meta">
+        <span>{{ job.displayStatus or job.status }}</span>
+        <small>{{ job.vehicleType or 'Vehicle assigned' }}</small>
+      </div>
+    </a>
+    {% else %}
+    <div class="driver-empty">No active assigned jobs. When a supplier dispatches you, the job appears here.</div>
+    {% endfor %}
+  </section>
+
+  <section class="driver-install-card">
+    <strong>Install demo app</strong>
+    <p>Open this page on mobile and use your browser menu to install FreightFlow Driver.</p>
+  </section>
+</div>
+<script src="{{ url_for('static', filename='driver/driver-pwa.js') }}"></script>
+{% endblock %}

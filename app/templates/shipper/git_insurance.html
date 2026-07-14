@@ -1,0 +1,85 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="stack page-space" style="max-width:640px;margin:0 auto">
+  <div class="topbar">
+    <div>
+      <p class="eyebrow">Booking {{ booking.ref }}</p>
+      <h1>GIT Insurance</h1>
+      <p class="topbar-copy">Goods-in-Transit cover for {{ booking.route }}</p>
+    </div>
+    <a href="{{ url_for('shipper.booking_detail', ref=booking.ref) }}" class="ghost-button">← Back</a>
+  </div>
+
+  {% if existing %}
+  <section class="panel" style="padding:1.5rem">
+    <div style="display:flex;align-items:center;gap:1rem;margin-bottom:1.2rem">
+      <div style="width:48px;height:48px;border-radius:12px;background:rgba(47,108,87,.12);display:grid;place-items:center;font-size:1.4rem;flex-shrink:0">Shield</div>
+      <div>
+        <p style="margin:0;font-weight:700;font-size:1.05rem">Insurance Active</p>
+        <p class="muted" style="margin:.2rem 0 0;font-size:.85rem">Policy {{ existing.policy_ref }}</p>
+      </div>
+      <span style="margin-left:auto;background:rgba(47,108,87,.12);color:var(--green);font-size:.8rem;font-weight:700;padding:.3rem .8rem;border-radius:999px">{{ existing.status }}</span>
+    </div>
+    <table style="width:100%;border-collapse:collapse">
+      <tr style="border-bottom:1px solid var(--line)"><td style="padding:.5rem 0;color:var(--muted)">Provider</td><td style="text-align:right;font-weight:600">{{ existing.provider }}</td></tr>
+      <tr style="border-bottom:1px solid var(--line)"><td style="padding:.5rem 0;color:var(--muted)">Cover amount</td><td style="text-align:right;font-weight:600">R{{ "{:,.2f}".format(existing.cover_amount or 0) }}</td></tr>
+      <tr style="border-bottom:1px solid var(--line)"><td style="padding:.5rem 0;color:var(--muted)">Premium ({{ existing.premium_rate }}%)</td><td style="text-align:right;font-weight:600">R{{ "{:,.2f}".format(existing.premium_amount or 0) }}</td></tr>
+      <tr><td style="padding:.5rem 0;color:var(--muted)">Policy ref</td><td style="text-align:right;font-family:monospace;font-weight:700;color:var(--accent)">{{ existing.policy_ref }}</td></tr>
+    </table>
+  </section>
+  {% else %}
+  <section class="panel" style="padding:1.5rem">
+    <div style="display:flex;align-items:center;gap:.8rem;background:linear-gradient(135deg,#e6f1fb,#d0e8fa);border-radius:12px;padding:1rem;margin-bottom:1.5rem">
+      <span style="font-size:1.6rem">Shield</span>
+      <div>
+        <p style="margin:0;font-weight:700;font-size:.95rem">Why GIT Insurance?</p>
+        <p style="margin:.3rem 0 0;font-size:.83rem;color:#1a3a5c">South Africa has elevated cargo theft risk. GIT cover protects your full cargo value from theft, damage, and accident - from pickup to delivery. Industry rate: 0.5-1.2% of cargo value.</p>
+      </div>
+    </div>
+
+    <form method="POST">
+      <label style="display:block;margin-bottom:1rem">
+        <span style="font-weight:600;font-size:.9rem">Declared cargo value (ZAR)</span>
+        <div style="position:relative;margin-top:.4rem">
+          <span style="position:absolute;left:.9rem;top:50%;transform:translateY(-50%);font-weight:700;color:var(--muted)">R</span>
+          <input type="number" name="cargo_value" id="cargoValue" min="1000" step="1000"
+                 placeholder="e.g. 250000"
+                 style="width:100%;padding:.85rem .85rem .85rem 2.2rem;border:1.5px solid var(--line);border-radius:12px;font:inherit;font-size:1rem"
+                 oninput="calcPremium(this.value)" required>
+        </div>
+      </label>
+
+      <div id="premium-preview" style="display:none;background:rgba(47,108,87,.06);border:1.5px solid rgba(47,108,87,.2);border-radius:12px;padding:1rem;margin-bottom:1.2rem">
+        <p style="margin:0 0 .5rem;font-weight:700;font-size:.9rem">Premium estimate (0.8%)</p>
+        <div style="display:flex;justify-content:space-between;font-size:.9rem;margin:.3rem 0">
+          <span class="muted">Cover amount</span><strong id="coverAmt">-</strong>
+        </div>
+        <div style="display:flex;justify-content:space-between;font-size:.9rem;margin:.3rem 0">
+          <span class="muted">Premium (0.8% of cover)</span><strong id="premiumAmt">-</strong>
+        </div>
+        <p style="margin:.7rem 0 0;font-size:.78rem;color:var(--muted)">Final premium confirmed at issuance. Coverage is effective from booking confirmation to proof of delivery.</p>
+      </div>
+
+      <button type="submit" class="primary-button wide-button" style="font-size:1rem;padding:.9rem">
+        Shield Issue GIT Insurance
+      </button>
+    </form>
+  </section>
+
+  <section class="panel" style="padding:1.2rem">
+    <p style="margin:0;font-size:.83rem;color:var(--muted)"><strong>What's covered:</strong> Theft, hijacking, accidental damage, fire, flooding during transit. Claims handled directly through FreightFlow - no separate insurer contact needed.</p>
+  </section>
+  {% endif %}
+</div>
+
+<script>
+function fmt(n){ return 'R' + parseFloat(n).toLocaleString('en-ZA',{minimumFractionDigits:2,maximumFractionDigits:2}); }
+function calcPremium(v){
+  var n = parseFloat(v);
+  if(!n || n <= 0){ document.getElementById('premium-preview').style.display='none'; return; }
+  document.getElementById('premium-preview').style.display='block';
+  document.getElementById('coverAmt').textContent   = fmt(n);
+  document.getElementById('premiumAmt').textContent = fmt(n * 0.008);
+}
+</script>
+{% endblock %}

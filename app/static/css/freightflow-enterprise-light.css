@@ -1,0 +1,302 @@
+/* FreightFlow Enterprise Light Theme v3
+   Purpose: make logged-in product screens feel like a premium enterprise logistics OS. */
+:root{
+  --bg:#f6f8fb !important;
+  --surface:#ffffff !important;
+  --surface-2:#f8fafc !important;
+  --border:#e6eaf0 !important;
+  --border-strong:#d7dde8 !important;
+  --text:#0f172a !important;
+  --text-2:#334155 !important;
+  --text-3:#64748b !important;
+  --accent:#e11d2e !important;
+  --accent-dark:#b91c1c !important;
+  --accent-subtle:#fff1f2 !important;
+  --accent-mid:#ffe4e6 !important;
+  --green:#16a34a !important;
+  --green-bg:#ecfdf5 !important;
+  --amber:#d97706 !important;
+  --amber-bg:#fffbeb !important;
+  --red:#e11d2e !important;
+  --red-bg:#fff1f2 !important;
+  --shadow-sm:0 1px 2px rgba(15,23,42,.06) !important;
+  --shadow:0 12px 32px rgba(15,23,42,.08) !important;
+  --shadow-lg:0 24px 70px rgba(15,23,42,.12) !important;
+}
+
+body:not(.public-page){
+  color:#0f172a !important;
+  background:#f6f8fb !important;
+  background-image:
+    radial-gradient(circle at 72% -8%, rgba(225,29,46,.10), transparent 36rem),
+    radial-gradient(circle at 0% 18%, rgba(14,165,233,.08), transparent 32rem),
+    linear-gradient(180deg,#fbfcfe,#f6f8fb 52%,#f3f6fa) !important;
+}
+body:not(.public-page) .topbar-fixed{
+  background:rgba(255,255,255,.88)!important;
+  border-bottom:1px solid #e8edf4!important;
+  box-shadow:0 8px 26px rgba(15,23,42,.05)!important;
+  backdrop-filter:blur(22px) saturate(1.25)!important;
+}
+body:not(.public-page) .sidebar{
+  background:rgba(255,255,255,.92)!important;
+  border-right:1px solid #e8edf4!important;
+  box-shadow:8px 0 30px rgba(15,23,42,.035)!important;
+  backdrop-filter:blur(18px)!important;
+}
+body:not(.public-page) .brand-lockup,
+body:not(.public-page) .brand-text strong,
+body:not(.public-page) h1,
+body:not(.public-page) h2,
+body:not(.public-page) h3,
+body:not(.public-page) .panel-head h2,
+body:not(.public-page) .topbar h1{
+  color:#0f172a!important;
+}
+body:not(.public-page) .brand-mark{background:linear-gradient(135deg,#ef233c,#b91c1c)!important;color:#fff!important;border-radius:14px!important;box-shadow:0 12px 24px rgba(225,29,46,.18)!important;}
+body:not(.public-page) .brand-text small,
+body:not(.public-page) .muted,
+body:not(.public-page) .small-note,
+body:not(.public-page) .topbar-copy,
+body:not(.public-page) .panel-head p,
+body:not(.public-page) .ff2-copy,
+body:not(.public-page) .ff2-section-title p{
+  color:#64748b!important;
+}
+body:not(.public-page) .sidebar-link{color:#334155!important;}
+body:not(.public-page) .sidebar-link:hover{background:#fff1f2!important;color:#b91c1c!important;}
+body:not(.public-page) .sidebar-link.active{background:linear-gradient(90deg,#fee2e2,#fff1f2)!important;color:#b91c1c!important;box-shadow:inset 0 0 0 1px rgba(225,29,46,.08)!important;}
+body:not(.public-page) .sidebar-section-label{color:#64748b!important;}
+body:not(.public-page) .sidebar-footer{border-top:1px solid #e8edf4!important;}
+body:not(.public-page) .page-shell{background:transparent!important;}
+body:not(.public-page) .app-shell{width:min(1500px,calc(100% - 2.5rem))!important;}
+body:not(.public-page) .site-footer{background:transparent!important;border-color:#e8edf4!important;color:#64748b!important;}
+
+/* Enterprise cards */
+body:not(.public-page) .panel,
+body:not(.public-page) .stat-card,
+body:not(.public-page) .notification-card,
+body:not(.public-page) .inline-card,
+body:not(.public-page) .action-row-card,
+body:not(.public-page) .ff-operational-card,
+body:not(.public-page) .empty-card,
+body:not(.public-page) .dashboard-card,
+body:not(.public-page) .card,
+body:not(.public-page) .ff2-metric,
+body:not(.public-page) .ff2-vehicle-card,
+body:not(.public-page) .ff2-job-card,
+body:not(.public-page) .ff2-driver-card{
+  background:#ffffff!important;
+  color:#0f172a!important;
+  border:1px solid #e6eaf0!important;
+  border-radius:22px!important;
+  box-shadow:0 12px 32px rgba(15,23,42,.06)!important;
+}
+body:not(.public-page) .panel:hover,
+body:not(.public-page) .ff2-vehicle-card:hover{
+  border-color:#fecdd3!important;
+  box-shadow:0 18px 48px rgba(15,23,42,.10)!important;
+}
+body:not(.public-page) .primary-button,
+body:not(.public-page) .btn-primary,
+body:not(.public-page) .ff2-btn-primary{
+  background:linear-gradient(135deg,#ef233c,#d51b2a 70%,#b91c1c)!important;
+  color:#fff!important;
+  border:0!important;
+  box-shadow:0 14px 30px rgba(225,29,46,.22)!important;
+}
+body:not(.public-page) .ghost-button,
+body:not(.public-page) .ff2-btn-ghost,
+body:not(.public-page) .btn-ghost{
+  background:#ffffff!important;
+  color:#0f172a!important;
+  border:1px solid #e2e8f0!important;
+  box-shadow:0 8px 18px rgba(15,23,42,.05)!important;
+}
+body:not(.public-page) .ghost-button:hover,
+body:not(.public-page) .ff2-btn-ghost:hover,
+body:not(.public-page) .btn-ghost:hover{
+  color:#b91c1c!important;
+  border-color:#fecdd3!important;
+  background:#fff1f2!important;
+}
+body:not(.public-page) input,
+body:not(.public-page) select,
+body:not(.public-page) textarea{
+  background:#ffffff!important;
+  color:#0f172a!important;
+  border:1px solid #e2e8f0!important;
+  box-shadow:0 1px 0 rgba(15,23,42,.02)!important;
+}
+body:not(.public-page) input:focus,
+body:not(.public-page) select:focus,
+body:not(.public-page) textarea:focus{
+  border-color:#ef233c!important;
+  box-shadow:0 0 0 4px rgba(239,35,60,.12)!important;
+}
+
+/* FF2 product sections */
+body:not(.public-page) .ff2-hero,
+body:not(.public-page) .ops-summary{
+  background:linear-gradient(135deg,#ffffff,#f8fafc)!important;
+  border:1px solid #e6eaf0!important;
+  box-shadow:0 18px 50px rgba(15,23,42,.08)!important;
+}
+body:not(.public-page) .ff2-kicker{
+  background:#fff1f2!important;
+  border-color:#fecdd3!important;
+  color:#be123c!important;
+}
+body:not(.public-page) .ff2-title,
+body:not(.public-page) .ff2-section-title h2,
+body:not(.public-page) .ff2-metric strong,
+body:not(.public-page) .ff2-vehicle-body h3,
+body:not(.public-page) .ff2-job-card strong,
+body:not(.public-page) .ff2-driver-card strong{
+  color:#0f172a!important;
+}
+body:not(.public-page) .ff2-metric .icon{
+  background:#fff1f2!important;
+  color:#e11d2e!important;
+  border-color:#fecdd3!important;
+}
+body:not(.public-page) .ff2-vehicle-img{background:#f8fafc!important;}
+body:not(.public-page) .ff2-vehicle-img img{filter:none!important;}
+body:not(.public-page) .ff2-tags span{
+  background:#f8fafc!important;
+  color:#475569!important;
+  border-color:#e2e8f0!important;
+}
+body:not(.public-page) .ff2-step,
+body:not(.public-page) .summary-row,
+body:not(.public-page) .table-row{
+  background:#ffffff!important;
+  border:1px solid #eef2f7!important;
+  color:#0f172a!important;
+}
+body:not(.public-page) .ff2-avatar{background:linear-gradient(135deg,#ef233c,#b91c1c)!important;color:#fff!important;}
+
+/* Light control tower */
+body:not(.public-page) .ffn-sa-map-shell{
+  background:#ffffff!important;
+  border:1px solid #e6eaf0!important;
+  border-radius:24px!important;
+  box-shadow:0 18px 50px rgba(15,23,42,.08)!important;
+}
+body:not(.public-page) .ffn-sa-map{background:#f8fafc!important;}
+body:not(.public-page) .ffn-map-overlay{
+  background:rgba(255,255,255,.90)!important;
+  color:#0f172a!important;
+  border:1px solid #e6eaf0!important;
+  box-shadow:0 18px 42px rgba(15,23,42,.12)!important;
+}
+body:not(.public-page) .ffn-map-overlay strong{color:#0f172a!important;}
+body:not(.public-page) .ffn-map-overlay p{color:#64748b!important;}
+body:not(.public-page) .ffn-map-chip{
+  background:#ffffff!important;
+  color:#334155!important;
+  border:1px solid #e2e8f0!important;
+  box-shadow:0 8px 18px rgba(15,23,42,.07)!important;
+}
+body:not(.public-page) .stat-pill{background:#fff!important;color:#0f172a!important;border:1px solid #e2e8f0!important;box-shadow:0 8px 18px rgba(15,23,42,.05)!important;}
+
+/* Dedicated operations section on landing/tracking pages can use this light class too */
+.enterprise-light-control{
+  background:#f6f8fb!important;
+  color:#0f172a!important;
+}
+.enterprise-light-control .operations-frame,
+body:not(.public-page) .operations-frame{
+  background:#ffffff!important;
+  border:1px solid #e6eaf0!important;
+  box-shadow:0 20px 60px rgba(15,23,42,.10)!important;
+}
+body:not(.public-page) .ops-copy,
+.enterprise-light-control .ops-copy{
+  background:rgba(255,255,255,.82)!important;
+  border:1px solid #e6eaf0!important;
+  box-shadow:0 16px 40px rgba(15,23,42,.08)!important;
+}
+body:not(.public-page) .ops-copy h2,
+.enterprise-light-control .ops-copy h2{color:#0f172a!important;}
+body:not(.public-page) .ops-copy p,
+.enterprise-light-control .ops-copy p{color:#475569!important;}
+body:not(.public-page) .ops-summary-card,
+.enterprise-light-control .ops-summary-card{
+  background:rgba(255,255,255,.92)!important;
+  border:1px solid #e6eaf0!important;
+  box-shadow:0 18px 42px rgba(15,23,42,.12)!important;
+}
+body:not(.public-page) .ops-route-line strong,
+.enterprise-light-control .ops-route-line strong,
+body:not(.public-page) .ops-mini-stats strong,
+.enterprise-light-control .ops-mini-stats strong{color:#0f172a!important;}
+body:not(.public-page) .ops-route-line small,
+.enterprise-light-control .ops-route-line small,
+body:not(.public-page) .ops-mini-stats small,
+.enterprise-light-control .ops-mini-stats small{color:#64748b!important;}
+body:not(.public-page) .ops-side-rail,
+.enterprise-light-control .ops-side-rail{
+  background:#ffffff!important;
+  border-left:1px solid #e6eaf0!important;
+}
+body:not(.public-page) .ops-card,
+.enterprise-light-control .ops-card{
+  background:#ffffff!important;
+  border:1px solid #e6eaf0!important;
+  color:#0f172a!important;
+  box-shadow:0 10px 28px rgba(15,23,42,.06)!important;
+}
+body:not(.public-page) .shipment-id strong,
+.enterprise-light-control .shipment-id strong,
+body:not(.public-page) .ops-step strong,
+.enterprise-light-control .ops-step strong,
+body:not(.public-page) .vehicle-card strong,
+.enterprise-light-control .vehicle-card strong,
+body:not(.public-page) .supplier-card strong,
+.enterprise-light-control .supplier-card strong{color:#0f172a!important;}
+body:not(.public-page) .shipment-id span,
+.enterprise-light-control .shipment-id span,
+body:not(.public-page) .ops-step small,
+.enterprise-light-control .ops-step small,
+body:not(.public-page) .vehicle-card small,
+.enterprise-light-control .vehicle-card small,
+body:not(.public-page) .vehicle-card span,
+.enterprise-light-control .vehicle-card span,
+body:not(.public-page) .supplier-card small,
+.enterprise-light-control .supplier-card small{color:#64748b!important;}
+body:not(.public-page) .ops-progress-strip,
+.enterprise-light-control .ops-progress-strip{
+  background:#ffffff!important;
+  border-top:1px solid #e6eaf0!important;
+}
+body:not(.public-page) .strip-step strong,
+.enterprise-light-control .strip-step strong{color:#0f172a!important;}
+body:not(.public-page) .strip-step small,
+.enterprise-light-control .strip-step small{color:#64748b!important;}
+body:not(.public-page) .vehicle-card a,
+body:not(.public-page) .supplier-card a,
+body:not(.public-page) .docs-card a,
+.enterprise-light-control .vehicle-card a,
+.enterprise-light-control .supplier-card a,
+.enterprise-light-control .docs-card a{
+  color:#0f172a!important;
+  background:#ffffff!important;
+  border:1px solid #e2e8f0!important;
+}
+body:not(.public-page) .control-tower-map:after,
+.enterprise-light-control .control-tower-map:after{
+  background:linear-gradient(90deg,rgba(255,255,255,.78) 0%,rgba(255,255,255,.26) 31%,rgba(255,255,255,.05) 62%,rgba(255,255,255,.10) 100%)!important;
+}
+
+/* Light tracking page polish */
+body:not(.public-page) #tracking-map{background:#f8fafc!important;}
+body:not(.public-page) .live-badge{background:#dcfce7!important;color:#15803d!important;}
+body:not(.public-page) .live-dot{background:#16a34a!important;}
+body:not(.public-page) .step-dot{background:#ffffff!important;border-color:#cbd5e1!important;}
+body:not(.public-page) .step-dot.done{background:#16a34a!important;border-color:#16a34a!important;}
+body:not(.public-page) .step-dot.active{border-color:#e11d2e!important;box-shadow:0 0 0 4px rgba(225,29,46,.12)!important;}
+body:not(.public-page) .step-line{background:#cbd5e1!important;}
+body:not(.public-page) .step-line.done{background:#16a34a!important;}
+
+@media(max-width:900px){body:not(.public-page) .app-shell{width:min(100% - 1rem,1500px)!important;}}

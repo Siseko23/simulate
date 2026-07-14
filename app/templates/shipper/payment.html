@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="stack page-space" style="max-width:600px;margin:0 auto">
+  <div class="topbar">
+    <div>
+      <p class="eyebrow">Shipper portal</p>
+      <h1>Pay invoice - {{ invoice.invoice_number }}</h1>
+      <p class="topbar-copy">Booking {{ booking.ref }} - {{ booking.route }}</p>
+    </div>
+  </div>
+
+  <section class="panel">
+    <div class="panel-head"><h2>Invoice summary</h2></div>
+    {% for label, val in [
+      ('Subtotal', 'R ' + '{:,.0f}'.format(invoice.amount or 0)),
+      ('VAT (15%)', 'R ' + '{:,.0f}'.format(invoice.vat_amount or 0)),
+      ('Total due', 'R ' + '{:,.0f}'.format(invoice.total_amount or 0)),
+      ('Due date', invoice.due_date.strftime('%d %b %Y') if invoice.due_date else '-'),
+    ] %}
+    <div style="display:flex;justify-content:space-between;padding:.5rem 0;border-bottom:1px solid var(--line);font-size:.92rem">
+      <span class="muted">{{ label }}</span><strong>{{ val }}</strong>
+    </div>
+    {% endfor %}
+  </section>
+
+  {% if invoice.status == 'Paid' %}
+  <div style="background:rgba(47,108,87,.08);border:1px solid rgba(47,108,87,.25);border-radius:16px;padding:1.2rem;text-align:center">
+    <p style="margin:0;font-size:1.1rem;font-weight:600;color:var(--green)">OK Paid</p>
+    <p class="muted" style="margin:.4rem 0 0">Settled {{ invoice.paid_at.strftime('%d %b %Y at %H:%M') if invoice.paid_at else '' }}</p>
+  </div>
+  {% else %}
+  <section class="panel">
+    <div class="panel-head"><h2>Payment method</h2></div>
+    <form method="POST">
+      <div class="form-grid">
+        <label class="form-span">Payment method
+          <select name="method">
+            <option>Instant EFT</option>
+            <option>Card payment</option>
+            <option>Bank transfer</option>
+          </select>
+        </label>
+      </div>
+      <button type="submit" class="primary-button wide-button" style="margin-top:1rem">Confirm payment of R {{ '{:,.0f}'.format(invoice.total_amount or 0) }}</button>
+      <p class="muted" style="font-size:.8rem;text-align:center;margin-top:.6rem">Demo environment - no real payment is processed.</p>
+    </form>
+  </section>
+  {% endif %}
+</div>
+{% endblock %}

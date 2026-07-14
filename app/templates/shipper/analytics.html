@@ -1,0 +1,223 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="stack page-space">
+
+  <div class="topbar">
+    <div>
+      <p class="eyebrow">Shipper dashboard</p>
+      <h1>Spend Analytics</h1>
+      <p class="topbar-copy">Your freight performance - board-ready</p>
+    </div>
+    <a href="{{ url_for('shipper.analytics_export') }}" class="ghost-button">Download Export CSV</a>
+  </div>
+
+  {# -- KPI ROW -- #}
+  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:.8rem">
+
+    <div class="panel" style="padding:1.1rem;text-align:center">
+      <div style="font-size:1.9rem;font-weight:800;color:var(--accent)">{{ zar(total_spend) }}</div>
+      <div style="font-size:.72rem;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin-top:.3rem">Total freight spend</div>
+    </div>
+
+    <div class="panel" style="padding:1.1rem;text-align:center;border:1.5px solid rgba(47,108,87,.3)">
+      <div style="font-size:1.9rem;font-weight:800;color:var(--green)">{{ zar(total_savings) }}</div>
+      <div style="font-size:.72rem;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin-top:.3rem">Saved vs broker rates</div>
+      <div style="font-size:.72rem;color:var(--muted);margin-top:.2rem">Broker equiv: <span style="text-decoration:line-through">{{ zar(broker_equiv) }}</span></div>
+    </div>
+
+    <div class="panel" style="padding:1.1rem;text-align:center">
+      <div style="font-size:1.9rem;font-weight:800">{{ total_bookings }}</div>
+      <div style="font-size:.72rem;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin-top:.3rem">Delivered loads</div>
+      {% if pending_count %}<div style="font-size:.72rem;color:var(--accent);margin-top:.2rem">{{ pending_count }} in progress</div>{% endif %}
+    </div>
+
+    <div class="panel" style="padding:1.1rem;text-align:center;border:1.5px solid {% if on_time_rate >= 90 %}rgba(47,108,87,.3){% elif on_time_rate >= 75 %}rgba(230,126,34,.3){% else %}rgba(192,57,43,.3){% endif %}">
+      <div style="font-size:1.9rem;font-weight:800;color:{% if on_time_rate >= 90 %}var(--green){% elif on_time_rate >= 75 %}#e67e22{% else %}var(--red){% endif %}">{{ on_time_rate }}%</div>
+      <div style="font-size:.72rem;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin-top:.3rem">On-time delivery</div>
+    </div>
+
+    <div class="panel" style="padding:1.1rem;text-align:center">
+      <div style="font-size:1.9rem;font-weight:800">R{{ "%.2f"|format(avg_cpk) }}</div>
+      <div style="font-size:.72rem;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin-top:.3rem">Avg cost/km</div>
+    </div>
+
+    <div class="panel" style="padding:1.1rem;text-align:center;border:1.5px solid {% if git_rate >= 80 %}rgba(47,108,87,.3){% else %}rgba(255,200,0,.4){% endif %}">
+      <div style="font-size:1.9rem;font-weight:800;color:{% if git_rate >= 80 %}var(--green){% else %}#e67e22{% endif %}">{{ git_rate }}%</div>
+      <div style="font-size:.72rem;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin-top:.3rem">GIT insured</div>
+      {% if git_rate < 80 %}<a href="{{ url_for('shipper.git_insurance') if false else url_for('shipper.risk') }}" style="font-size:.7rem;color:var(--accent)">Improve coverage →</a>{% endif %}
+    </div>
+
+    {% if fragile_count %}
+    <div class="panel" style="padding:1.1rem;text-align:center">
+      <div style="font-size:1.9rem;font-weight:800">{{ fragile_count }}</div>
+      <div style="font-size:.72rem;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin-top:.3rem"> Fragile loads</div>
+    </div>
+    {% endif %}
+
+  </div>
+
+  {# -- BROKER SAVINGS CALLOUT -- #}
+  {% if total_savings > 0 %}
+  <div style="display:flex;align-items:center;gap:1rem;background:linear-gradient(135deg,#e8f5ee,#d4edda);border:1.5px solid rgba(47,108,87,.3);border-radius:14px;padding:1rem 1.3rem">
+    <span style="font-size:2rem">Money</span>
+    <div>
+      <p style="margin:0;font-weight:700;font-size:1rem;color:var(--green)">You've saved {{ zar(total_savings) }} vs traditional brokers</p>
+      <p style="margin:.3rem 0 0;font-size:.85rem;color:#2d6a4f">Traditional brokers charge 15-20% margins. FreightFlow charges 8-10%. Across {{ total_bookings }} delivered loads, that's real money back in your business.</p>
+    </div>
+  </div>
+  {% endif %}
+
+  <div class="grid two-up">
+
+    {# -- MONTHLY SPEND CHART -- #}
+    <section class="panel">
+      <div class="panel-head"><h2>Monthly freight spend</h2><p>Last 6 months - FFN price vs broker equivalent</p></div>
+      {% if monthly_labels %}
+      <div style="overflow-x:auto">
+        <table style="width:100%;border-collapse:collapse;font-size:.85rem">
+          <thead>
+            <tr style="border-bottom:2px solid var(--line)">
+              <th style="text-align:left;padding:.5rem 0;color:var(--muted);font-weight:600">Month</th>
+              <th style="text-align:right;color:var(--muted);font-weight:600">FFN spend</th>
+              <th style="text-align:right;color:var(--muted);font-weight:600">Broker equiv.</th>
+              <th style="text-align:right;color:var(--muted);font-weight:600">Saved</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for i in range(monthly_labels|length) %}
+            <tr style="border-bottom:1px solid var(--line)">
+              <td style="padding:.5rem 0;font-weight:600">{{ monthly_labels[i] }}</td>
+              <td style="text-align:right;padding:.5rem 0">{{ zar(monthly_values[i]) }}</td>
+              <td style="text-align:right;padding:.5rem 0;color:var(--muted);text-decoration:line-through">{{ zar(monthly_values[i] * 1.175) }}</td>
+              <td style="text-align:right;padding:.5rem 0;color:var(--green);font-weight:700">{{ zar(monthly_savings[i]) }}</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      {% else %}
+      <p class="muted">No delivered bookings yet.</p>
+      {% endif %}
+    </section>
+
+    {# -- TOP ROUTES -- #}
+    <section class="panel">
+      <div class="panel-head"><h2>Top routes by spend</h2></div>
+      {% if top_routes %}
+      {% set max_val = top_routes[0][1] %}
+      {% for route, val in top_routes %}
+      <div style="margin-bottom:.8rem">
+        <div style="display:flex;justify-content:space-between;font-size:.88rem;margin-bottom:.25rem">
+          <span style="font-weight:600">{{ route or 'Unknown' }}</span>
+          <span style="color:var(--muted)">{{ zar(val) }}</span>
+        </div>
+        <div style="height:8px;background:var(--line);border-radius:4px;overflow:hidden">
+          <div style="height:100%;width:{{ (val / max_val * 100)|int }}%;background:linear-gradient(90deg,var(--accent),#5f9dd5);border-radius:4px"></div>
+        </div>
+      </div>
+      {% endfor %}
+      {% else %}
+      <p class="muted">No route data yet.</p>
+      {% endif %}
+    </section>
+
+    {# -- TOP SUPPLIERS -- #}
+    <section class="panel">
+      <div class="panel-head"><h2>Supplier spend breakdown</h2></div>
+      {% if top_suppliers_list %}
+      <table style="width:100%;border-collapse:collapse;font-size:.85rem">
+        <thead>
+          <tr style="border-bottom:2px solid var(--line)">
+            <th style="text-align:left;padding:.4rem 0;color:var(--muted);font-weight:600">Supplier</th>
+            <th style="text-align:right;color:var(--muted);font-weight:600">Spend</th>
+            <th style="text-align:right;color:var(--muted);font-weight:600">Share</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for sname, val in top_suppliers_list %}
+          <tr style="border-bottom:1px solid var(--line)">
+            <td style="padding:.45rem 0;font-weight:600">{{ sname }}</td>
+            <td style="text-align:right;padding:.45rem 0">{{ zar(val) }}</td>
+            <td style="text-align:right;padding:.45rem 0;color:var(--muted)">{{ pct(val / total_spend * 100) if total_spend else '-' }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+      {% else %}
+      <p class="muted">No supplier data yet.</p>
+      {% endif %}
+    </section>
+
+    {# -- PLATFORM HEALTH CARD (board-ready) -- #}
+    <section class="panel" style="border:2px solid rgba(21,95,160,.2)">
+      <div class="panel-head"><h2>Company Platform health card</h2><p>Board summary - {{ "now"|default("June 2026") }}</p></div>
+      <div style="display:grid;gap:.6rem">
+        <div style="display:flex;justify-content:space-between;padding:.5rem 0;border-bottom:1px dashed var(--line);font-size:.88rem">
+          <span class="muted">Total freight managed</span><strong>{{ zar(total_spend) }}</strong>
+        </div>
+        <div style="display:flex;justify-content:space-between;padding:.5rem 0;border-bottom:1px dashed var(--line);font-size:.88rem">
+          <span class="muted">Broker cost avoidance</span><strong style="color:var(--green)">{{ zar(total_savings) }}</strong>
+        </div>
+        <div style="display:flex;justify-content:space-between;padding:.5rem 0;border-bottom:1px dashed var(--line);font-size:.88rem">
+          <span class="muted">Loads delivered</span><strong>{{ total_bookings }}</strong>
+        </div>
+        <div style="display:flex;justify-content:space-between;padding:.5rem 0;border-bottom:1px dashed var(--line);font-size:.88rem">
+          <span class="muted">On-time delivery</span>
+          <strong style="color:{% if on_time_rate >= 90 %}var(--green){% elif on_time_rate >= 75 %}#e67e22{% else %}var(--red){% endif %}">{{ on_time_rate }}%</strong>
+        </div>
+        <div style="display:flex;justify-content:space-between;padding:.5rem 0;border-bottom:1px dashed var(--line);font-size:.88rem">
+          <span class="muted">GIT insurance coverage</span>
+          <strong style="color:{% if git_rate >= 80 %}var(--green){% else %}#e67e22{% endif %}">{{ git_rate }}%</strong>
+        </div>
+        <div style="display:flex;justify-content:space-between;padding:.5rem 0;font-size:.88rem">
+          <span class="muted">Avg cost per km</span><strong>R{{ "%.2f"|format(avg_cpk) }}</strong>
+        </div>
+      </div>
+      <button onclick="window.print()" class="ghost-button wide-button" style="margin-top:1rem;font-size:.85rem">Print Print board summary</button>
+    </section>
+
+  </div>
+
+  {# -- RECENT BOOKINGS TABLE -- #}
+  <section class="panel">
+    <div class="panel-head"><h2>Delivered bookings</h2><p>{{ total_bookings }} total</p></div>
+    {% if bookings %}
+    <div style="overflow-x:auto">
+      <table style="width:100%;border-collapse:collapse;font-size:.85rem">
+        <thead>
+          <tr style="border-bottom:2px solid var(--line)">
+            <th style="text-align:left;padding:.5rem 0;color:var(--muted);font-weight:600">Ref</th>
+            <th style="text-align:left;color:var(--muted);font-weight:600">Route</th>
+            <th style="text-align:left;color:var(--muted);font-weight:600">Supplier</th>
+            <th style="text-align:right;color:var(--muted);font-weight:600">Cost</th>
+            <th style="text-align:right;color:var(--muted);font-weight:600">Saved</th>
+            <th style="text-align:center;color:var(--muted);font-weight:600">GIT</th>
+            <th style="text-align:left;color:var(--muted);font-weight:600">Delivered</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for b in bookings %}
+          <tr style="border-bottom:1px solid var(--line)">
+            <td style="padding:.45rem 0"><a href="{{ url_for('shipper.booking_detail', ref=b.ref) }}" style="color:var(--accent);font-weight:600">{{ b.ref }}</a>{% if b.isFragile %} {% endif %}</td>
+            <td style="padding:.45rem 0;color:var(--muted);font-size:.8rem">{{ b.route }}</td>
+            <td style="padding:.45rem 0">{{ b.supplier }}</td>
+            <td style="text-align:right;padding:.45rem 0;font-weight:600">{{ zar(b.value) }}</td>
+            <td style="text-align:right;padding:.45rem 0;color:var(--green);font-size:.8rem">{{ zar(b.value * 0.175) }}</td>
+            <td style="text-align:center;padding:.45rem 0">{{ 'Shield' if b.hasGIT else '-' }}</td>
+            <td style="padding:.45rem 0;color:var(--muted);font-size:.8rem">{{ b.deliveredAt or b.createdAt }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% else %}
+    <div style="text-align:center;padding:2rem;color:var(--muted)">
+      <p style="font-size:2rem;margin:0">Cargo</p>
+      <p style="margin:.5rem 0">No delivered bookings yet.</p>
+      <a href="{{ url_for('shipper.new_booking') }}" class="primary-button" style="display:inline-block;margin-top:.5rem">Create your first booking</a>
+    </div>
+    {% endif %}
+  </section>
+
+</div>
+{% endblock %}

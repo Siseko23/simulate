@@ -1,0 +1,91 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="ff2-page">
+  <section class="panel ops-summary">
+    <div class="ff2-section-title">
+      <div>
+        <span class="ff2-kicker">Shipper operations</span>
+        <h1 class="ff2-title">Good day, {{ current_user.email.split('@')[0]|title if current_user and current_user.email else 'Shipper' }}</h1>
+        <p class="ff2-copy">Focus on what needs attention now: supplier responses, in-transit loads, pending PODs and the next shipment to create.</p>
+      </div>
+      <a class="primary-button" href="{{ url_for('shipper.new_booking') }}">New shipment</a>
+    </div>
+    <div class="ops-action-grid">
+      <article class="inline-card"><strong>{{ active }}</strong><span>Active shipments</span><p class="muted">Track live locations and ETAs.</p></article>
+      <article class="inline-card"><strong>{{ total_bookings - delivered if total_bookings and delivered is not none else 0 }}</strong><span>Open actions</span><p class="muted">Supplier, POD or payment follow-ups.</p></article>
+      <article class="inline-card"><strong>{{ delivered }}</strong><span>Delivered</span><p class="muted">Ready for POD and document review.</p></article>
+    </div>
+  </section>
+
+  <section class="ff2-metrics">
+    <article class="ff2-metric"><div class="icon ffn-icon-shipment"></div><strong>{{ active }}</strong><span>Active shipments</span><small>Moving or ready for dispatch</small></article>
+    <article class="ff2-metric"><div class="icon ffn-icon-route"></div><strong>{{ total_bookings }}</strong><span>Total bookings</span><small>All-time shipment records</small></article>
+    <article class="ff2-metric"><div class="icon ffn-icon-check"></div><strong>{{ delivered }}</strong><span>Delivered</span><small>POD-ready completed loads</small></article>
+    <article class="ff2-metric"><div class="icon ffn-icon-wallet"></div><strong>{{ zar(total_spend) }}</strong><span>Spend</span><small>Platform payments recorded</small></article>
+  </section>
+
+  <section class="panel">
+    <div class="ff2-section-title">
+      <div><h2>Vehicle guide</h2><p>No pricing here - this is for suitability, capacity and confidence.</p></div>
+      <a class="ghost-button" href="{{ url_for('shipper.new_booking') }}">Start with cargo →</a>
+    </div>
+    <div class="ff2-vehicle-row">
+      {% set vehicles = [
+        ('Bakkie / LDV','1-2 pallets - 500kg-1.5t','SMEs - Furniture - Retail','bakkie-ldv.jpg'),
+        ('Panel Van','2-4 pallets - 1t-2t','Express - Medical - Documents','panel-van.jpg'),
+        ('4 Ton Truck','6-10 pallets - 2t-4t','Regional - General - Bulk','four-ton.jpg'),
+        ('8 Ton Rigid','12-16 pallets - 5t-8t','Retail - FMCG - Regional','eight-ton.jpg'),
+        ('Curtainsider','20-26 pallets - 10t-14t','Weather protected - Side loading','curtainsider.jpg'),
+        ('Superlink','20-26 pallets - 20t-24t','Long haul - High capacity','superlink.jpg'),
+        ('Reefer Truck','16-22 pallets - 7t-18t','Cold chain - Pharma - Food','refrigerated-truck.jpg'),
+        ('Flatbed / Lowbed','Machinery - Steel - Construction','Open deck - Specialist','flatbed.jpg'),
+        ('Skeletal Trailer','20ft / 40ft containers','Port - Container movement','skeletal-trailer.jpg')
+      ] %}
+      {% for name,cap,best,img in vehicles %}
+      <article class="ff2-vehicle-card {{ 'best' if loop.index == 5 else '' }}">
+        <div class="ff2-vehicle-img"><img src="{{ url_for('static', filename='img/vehicles/' ~ img) }}" alt="{{ name }}"></div>
+        <div class="ff2-vehicle-body"><h3>{{ name }}</h3><p>{{ cap }}</p><div class="ff2-tags"><span>{{ best }}</span><span>Kargo scored</span></div></div>
+      </article>
+      {% endfor %}
+    </div>
+  </section>
+
+  <div class="ff2-grid">
+    <section class="panel">
+      <div class="ff2-section-title"><div><h2>Recent shipments</h2><p>Open a booking to see the supplier, driver, waybill, label and POD.</p></div><a class="ghost-button" href="{{ url_for('shipper.bookings') }}">View all →</a></div>
+      <div class="ff2-stack">
+        {% for b in bookings %}
+        <div class="ff2-job-card">
+          <div>
+            <strong>{{ b.ref }} - {{ b.collectionCity }} → {{ b.deliveryCity }}</strong>
+            <p>{{ b.pieces }} pallets - {{ b.totalWeight|round(0)|int }}kg - Supplier {{ b.supplier }} - Driver {{ b.driverName }}</p>
+            <div class="ff2-tags"><span>{{ b.displayStatus or b.status }}</span><span>{{ b.vehicleType or 'Vehicle pending' }}</span></div>
+          </div>
+          <a class="ghost-button" href="{{ url_for('shipper.booking_detail', ref=b.ref) }}">View details</a>
+        </div>
+        {% else %}
+        <div class="empty-card">No shipments yet. Create your first shipment to compare supplier quotes.</div>
+        {% endfor %}
+      </div>
+    </section>
+
+    <aside class="ff2-stack">
+      <section class="panel">
+        <div class="ff2-section-title"><div><h2>Live tracking</h2><p>Visual shipment movement.</p></div></div>
+        <div class="ffn-sa-map-shell dashboard" data-origin="Johannesburg, GP" data-destination="Durban, KZN" data-current="Pietermaritzburg" data-status="In transit" data-summary="Driver location appears once dispatched on a South African route map.">
+          <div class="ffn-sa-map"></div>
+        </div>
+      </section>
+      <section class="panel">
+        <div class="ff2-section-title"><div><h2>Kargo AI next action</h2><p>Operational assistant, not just chat.</p></div></div>
+        <div class="ff2-driver-card"><div class="ff2-avatar">AI</div><div><strong>Create shipment from cargo details</strong><span>Kargo will recommend vehicle fit, supplier risk and quote ranking.</span></div></div>
+        <a class="primary-button wide-button" href="{{ url_for('shipper.new_booking') }}" style="margin-top:.85rem">Start shipment</a>
+      </section>
+    </aside>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+{% if google_maps_key %}<script src="https://maps.googleapis.com/maps/api/js?key={{ google_maps_key }}&v=weekly&callback=initFfnSaMaps" async defer></script>{% endif %}
+{% endblock %}

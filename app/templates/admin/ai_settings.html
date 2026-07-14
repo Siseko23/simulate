@@ -1,0 +1,127 @@
+{% extends "base.html" %}
+{% block extra_head %}
+<style>
+  .weight-display{display:flex;gap:0;margin:.7rem 0;border-radius:12px;overflow:hidden;height:32px}
+  .weight-seg{display:flex;align-items:center;justify-content:center;font-size:.76rem;font-weight:700;color:var(--surface);transition:flex .3s}
+  .weight-seg.price{background:var(--accent)}
+  .weight-seg.perf{background:var(--green)}
+  .weight-seg.prox{background:#7a5800}
+  .weight-warn{color:var(--red);font-size:.82rem;font-weight:600;margin-top:.4rem}
+  .formula-box{background:rgba(21,95,160,.06);border:1px solid rgba(21,95,160,.15);border-radius:14px;padding:.9rem 1.1rem;font-family:monospace;font-size:.88rem;color:var(--accent-dark);margin:.8rem 0}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="stack page-space">
+  <div class="topbar">
+    <div>
+      <p class="eyebrow">Admin - Operations</p>
+      <h1>AI Engine Settings</h1>
+      <p class="topbar-copy">Configure the supplier selection engine, proximity filtering, and response window. Changes apply immediately to all new quote requests.</p>
+    </div>
+  </div>
+
+  <div class="grid two-up" style="align-items:start">
+
+    <form method="POST">
+      <section class="panel">
+        <div class="panel-head">
+          <h2>Composite score weights</h2>
+          <p>Three weighted criteria determine the AI's supplier ranking. Weights should total 100%.</p>
+        </div>
+
+        <div class="formula-box">
+          compositeScore = (priceScore x {{ settings.price_weight }}%) + (perfScore x {{ settings.performance_weight }}%) + (proxScore x {{ settings.proximity_weight }}%)
+        </div>
+
+        <div class="weight-display">
+          <div class="weight-seg price" style="flex:{{ settings.price_weight }}">Price {{ settings.price_weight }}%</div>
+          <div class="weight-seg perf" style="flex:{{ settings.performance_weight }}">Perf {{ settings.performance_weight }}%</div>
+          <div class="weight-seg prox" style="flex:{{ settings.proximity_weight }}">Prox {{ settings.proximity_weight }}%</div>
+        </div>
+        {% if (settings.price_weight + settings.performance_weight + settings.proximity_weight) != 100 %}
+        <p class="weight-warn">Warning Weights total {{ settings.price_weight + settings.performance_weight + settings.proximity_weight }}% - should equal 100%</p>
+        {% endif %}
+
+        <div class="form-grid compact" style="margin-top:1rem">
+          <label>Price weight (%)
+            <input name="price_weight" type="number" min="0" max="100" value="{{ settings.price_weight }}" oninput="updateWeightBar()"/>
+            <small class="muted">Lower price = higher score on this axis</small>
+          </label>
+          <label>Performance weight (%)
+            <input name="performance_weight" type="number" min="0" max="100" value="{{ settings.performance_weight }}" oninput="updateWeightBar()"/>
+            <small class="muted">Supplier historical score (1-5) normalised to 0-1</small>
+          </label>
+          <label>Proximity weight (%)
+            <input name="proximity_weight" type="number" min="0" max="100" value="{{ settings.proximity_weight }}" oninput="updateWeightBar()"/>
+            <small class="muted">Distance from supplier base to pickup point</small>
+          </label>
+        </div>
+
+        <div class="form-grid compact" style="margin-top:1rem">
+          <label>Proximity radius (km)
+            <input name="proximity_radius_km" type="number" min="5" max="200" value="{{ settings.proximity_radius_km }}"/>
+            <small class="muted">Suppliers outside this radius are excluded</small>
+          </label>
+          <label>Min performance score to qualify
+            <input name="min_performance_score" type="number" step="0.1" min="1" max="5" value="{{ settings.min_performance_score }}"/>
+            <small class="muted">Suppliers below this score are excluded from AI selection</small>
+          </label>
+          <label>Supplier response window (hours)
+            <input name="supplier_response_window_hrs" type="number" min="1" max="48" value="{{ settings.supplier_response_window_hrs }}"/>
+            <small class="muted">Time to accept before auto-reassignment</small>
+          </label>
+        </div>
+
+        <button type="submit" class="primary-button wide-button" style="margin-top:1.2rem">Save AI engine settings</button>
+      </section>
+    </form>
+
+    <!-- Right: info panel -->
+    <div style="display:flex;flex-direction:column;gap:1.2rem">
+      <section class="panel">
+        <div class="panel-head"><h2>How the AI engine works</h2></div>
+        <ol style="padding-left:1.3rem;color:var(--muted);font-size:.88rem;line-height:1.7;margin:0">
+          <li>Filter suppliers by route match and vehicle availability</li>
+          <li>Exclude suppliers outside the proximity radius</li>
+          <li>Calculate composite score for each remaining supplier</li>
+          <li>Auto-select the highest-scoring supplier. If tied, price is tiebreaker</li>
+          <li>Notify supplier. If rejected/timeout → auto-reassign to next</li>
+        </ol>
+      </section>
+
+      <section class="panel">
+        <div class="panel-head"><h2>Current active settings</h2></div>
+        <div style="font-size:.88rem">
+          {% for label, val in [
+            ('Proximity radius', settings.proximity_radius_km|string + ' km'),
+            ('Price weight', settings.price_weight|string + '%'),
+            ('Performance weight', settings.performance_weight|string + '%'),
+            ('Proximity weight', settings.proximity_weight|string + '%'),
+            ('Min score threshold', settings.min_performance_score|string),
+            ('Response window', settings.supplier_response_window_hrs|string + ' hours'),
+          ] %}
+          <div style="display:flex;justify-content:space-between;padding:.4rem 0;border-bottom:1px dashed var(--line)">
+            <span style="color:var(--muted)">{{ label }}</span><strong>{{ val }}</strong>
+          </div>
+          {% endfor %}
+        </div>
+      </section>
+    </div>
+
+  </div>
+</div>
+{% endblock %}
+{% block scripts %}
+<script>
+function updateWeightBar() {
+  const p = +document.querySelector('[name="price_weight"]').value || 0;
+  const s = +document.querySelector('[name="performance_weight"]').value || 0;
+  const x = +document.querySelector('[name="proximity_weight"]').value || 0;
+  const segs = document.querySelectorAll('.weight-seg');
+  if (segs[0]) { segs[0].style.flex = p; segs[0].textContent = `Price ${p}%`; }
+  if (segs[1]) { segs[1].style.flex = s; segs[1].textContent = `Perf ${s}%`; }
+  if (segs[2]) { segs[2].style.flex = x; segs[2].textContent = `Prox ${x}%`; }
+}
+</script>
+{% endblock %}

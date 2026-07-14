@@ -1,0 +1,70 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="stack page-space">
+  <div class="topbar">
+    <div>
+      <p class="eyebrow">Supplier portal - Shipment documents</p>
+      <h1>{{ booking.ref }}</h1>
+      <p class="topbar-copy">{{ booking.route }} - All operational and payment-supporting documents in one place.</p>
+    </div>
+    <a href="{{ url_for('supplier.bookings') }}" class="ghost-button">Back to bookings</a>
+  </div>
+
+  <section class="panel">
+    <div class="panel-head">
+      <div><h2>Document hub</h2><p class="muted" style="margin:.25rem 0 0">Documents unlock automatically as the shipment moves through its lifecycle.</p></div>
+      <div style="display:flex;gap:.6rem;flex-wrap:wrap"><a href="{{ url_for('supplier.download_service_pack_pdf', ref=booking.ref) }}" class="ghost-button" style="text-decoration:none">Complete PDF</a><a href="{{ url_for('supplier.download_service_pack', ref=booking.ref) }}" class="primary-button" style="text-decoration:none">Download ZIP pack</a></div>
+    </div>
+
+    <div class="grid two-up" style="gap:1rem">
+      <div class="panel" style="box-shadow:none">
+        <p class="eyebrow">Operational documents</p>
+        <div style="display:flex;justify-content:space-between;align-items:center;padding:.8rem 0;border-bottom:1px solid var(--line)">
+          <div><strong>Waybill / CMR</strong><p class="muted" style="font-size:.8rem;margin:.2rem 0 0">Carrier, route, cargo and delivery details</p></div>
+          {% if waybill_ok %}<a class="ghost-button" href="{{ url_for('supplier.legacy_supplier_waybill', ref=booking.ref) }}">View</a>{% else %}<span class="pill">Pending</span>{% endif %}
+        </div>
+        <div style="display:flex;justify-content:space-between;align-items:center;padding:.8rem 0;border-bottom:1px solid var(--line)">
+          <div><strong>Purchase order</strong><p class="muted" style="font-size:.8rem;margin:.2rem 0 0">Commercial instruction issued after acceptance</p></div>
+          {% if po %}<a class="ghost-button" href="{{ url_for('supplier.purchase_order_detail', po_id=po.id) }}">Open</a>{% else %}<span class="pill">Pending</span>{% endif %}
+        </div>
+        <div style="display:flex;justify-content:space-between;align-items:center;padding:.8rem 0">
+          <div><strong>Driver completion record</strong><p class="muted" style="font-size:.8rem;margin:.2rem 0 0">Delivery timestamp, driver and vehicle record</p></div>
+          {% if booking.status == 'Delivered' %}<a class="ghost-button" href="{{ url_for('supplier.download_service_pack', ref=booking.ref) }}">In service pack</a>{% else %}<span class="pill">Pending</span>{% endif %}
+        </div>
+      </div>
+
+      <div class="panel" style="box-shadow:none">
+        <p class="eyebrow">Proof of delivery</p>
+        <div style="display:flex;justify-content:space-between;align-items:center;padding:.8rem 0;border-bottom:1px solid var(--line)">
+          <div><strong>POD confirmation</strong><p class="muted" style="font-size:.8rem;margin:.2rem 0 0">Receiver: {{ pod_meta.receiver or "Pending" }} · GPS: {{ pod_meta.gps or "Not captured" }}</p></div>
+          {% if booking.pod_signed %}<span class="pill badge">Captured</span>{% else %}<span class="pill">Awaiting driver</span>{% endif %}
+        </div>
+        {% if pod_files %}
+          {% for filename in pod_files %}
+          <div style="display:flex;justify-content:space-between;align-items:center;padding:.8rem 0;border-bottom:1px solid var(--line)">
+            <div><strong>POD file {{ loop.index }}</strong><p class="muted" style="font-size:.8rem;margin:.2rem 0 0;max-width:320px;overflow:hidden;text-overflow:ellipsis">{{ filename }}</p></div>
+            <a class="ghost-button" href="{{ url_for('supplier.download_pod_document', ref=booking.ref, filename=filename) }}">Download</a>
+          </div>
+          {% endfor %}
+        {% else %}
+          <div class="empty-card" style="margin-top:1rem">POD photos or signed delivery documents will appear here immediately after the driver submits delivery proof.</div>
+        {% endif %}
+      </div>
+    </div>
+  </section>
+
+  <section class="panel">
+    <div class="panel-head"><div><h2>Invoice submission readiness</h2><p class="muted" style="margin:.25rem 0 0">The service pack is automatically linked to the purchase order. You only need to upload your invoice.</p></div></div>
+    {% if po %}
+      <div style="display:flex;justify-content:space-between;align-items:center;gap:1rem;flex-wrap:wrap">
+        <div><strong>{{ po.po_number }}</strong><p class="muted" style="margin:.25rem 0 0">POD: {{ 'Attached' if booking.delivery_evidence else 'Pending' }} - Signatures: {{ 'Attached' if booking.delivery_evidence and pod_meta.receiver_signature and pod_meta.driver_signature else 'Pending' }} - GPS: {{ 'Attached' if pod_meta.gps else 'Pending' }} - Invoice: {{ 'Uploaded' if po.invoice_filename else 'Not uploaded' }}</p></div>
+        <a class="primary-button" style="text-decoration:none" href="{{ url_for('supplier.purchase_order_detail', po_id=po.id) }}">{{ 'View invoice submission' if po.invoice_filename else 'Submit invoice' }}</a>
+      </div>
+    {% else %}
+      <div class="empty-card">The purchase order has not been generated yet.</div>
+    {% endif %}
+  </section>
+</div>
+{% endblock %}
+
+{% block scripts %}<script>setTimeout(()=>location.reload(),30000);</script>{% endblock %}

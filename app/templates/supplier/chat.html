@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="stack page-space">
+  <div class="topbar">
+    <div>
+      <p class="eyebrow">Supplier portal</p>
+      <h1>Driver chat</h1>
+      <p class="topbar-copy">Message your drivers directly about routes, delays, or DC slots.</p>
+    </div>
+  </div>
+
+  <div style="display:grid;grid-template-columns:280px 1fr;gap:1rem;min-height:500px">
+    <!-- Driver list -->
+    <section class="panel" style="padding:.6rem">
+      {% for d in drivers %}
+      <a href="{{ url_for('supplier.chat_thread', driver_id=d.id) }}"
+         style="display:block;padding:.7rem .8rem;border-radius:12px;text-decoration:none;color:inherit;margin-bottom:.3rem;
+         {% if active_driver and active_driver.id==d.id %}background:rgba(21,95,160,.1){% endif %}">
+        <strong style="font-size:.9rem">{{ d.name }}</strong>
+        {% if last_messages.get(d.id) %}
+        <p class="muted" style="font-size:.78rem;margin:.2rem 0 0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ last_messages[d.id].text[:40] }}</p>
+        {% else %}
+        <p class="muted" style="font-size:.78rem;margin:.2rem 0 0">No messages yet</p>
+        {% endif %}
+      </a>
+      {% else %}
+      <p class="muted" style="text-align:center;padding:1rem">No drivers yet.</p>
+      {% endfor %}
+    </section>
+
+    <!-- Thread -->
+    <section class="panel" style="display:flex;flex-direction:column">
+      {% if active_driver %}
+      <div class="panel-head"><h2>{{ active_driver.name }}</h2></div>
+      <div style="flex:1;overflow-y:auto;display:flex;flex-direction:column;gap:.6rem;padding:.5rem 0;max-height:420px">
+        {% for m in messages %}
+        <div style="max-width:70%;align-self:{% if m.sender_role=='supplier' %}flex-end{% else %}flex-start{% endif %};
+          background:{% if m.sender_role=='supplier' %}var(--accent){% else %}var(--bg){% endif %};
+          color:{% if m.sender_role=='supplier' %}var(--surface){% else %}inherit{% endif %};
+          padding:.6rem .85rem;border-radius:14px">
+          <p style="margin:0;font-size:.88rem">{{ m.text }}</p>
+          <p style="margin:.2rem 0 0;font-size:.72rem;opacity:.75">{{ m.created_at.strftime('%d %b, %H:%M') }}</p>
+        </div>
+        {% else %}
+        <p class="muted" style="text-align:center;padding:2rem">No messages yet - say hello!</p>
+        {% endfor %}
+      </div>
+      <form method="POST" action="{{ url_for('supplier.chat_send', driver_id=active_driver.id) }}" style="display:flex;gap:.6rem;margin-top:.8rem">
+        <input type="text" name="text" placeholder="Type a message..." style="flex:1;border:1px solid var(--line);border-radius:12px;padding:.6rem .8rem" required/>
+        <button type="submit" class="primary-button">Send</button>
+      </form>
+      {% else %}
+      <p class="muted" style="text-align:center;padding:3rem">Select a driver to start chatting.</p>
+      {% endif %}
+    </section>
+  </div>
+</div>
+{% endblock %}

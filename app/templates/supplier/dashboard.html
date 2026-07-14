@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="ff2-page">
+  <section class="ff2-hero">
+    <div class="ff2-hero-grid">
+      <div>
+        <span class="ff2-kicker">Carrier control room</span>
+        <h1 class="ff2-title">Accept jobs. Assign trucks. <span>Get paid.</span></h1>
+        <p class="ff2-copy">The supplier portal is built around action: pending jobs inside SLA, fleet readiness, driver availability, PO generation and payout visibility.</p>
+        <div class="ff2-action-row"><a class="primary-button" href="{{ url_for('supplier.bookings') }}">Pending jobs</a><a class="ghost-button" href="{{ url_for('supplier.dispatch') }}">Dispatch board</a></div>
+      </div>
+      <div class="ff2-visual-card"><img src="{{ url_for('static', filename='img/ffn-warehouse-hero.png') }}" alt="Supplier operations"></div>
+    </div>
+  </section>
+
+  <section class="ff2-metrics">
+    <article class="ff2-metric"><div class="icon">*</div><strong>{{ supplier.score }}</strong><span>Performance score</span><small><a href="{{ url_for('supplier.performance') }}">View history →</a></small></article>
+    <article class="ff2-metric"><div class="icon ffn-icon-check"></div><strong>Active</strong><span>Approval status</span><small>KZN / Gauteng ready</small></article>
+    <article class="ff2-metric"><div class="icon">Truck</div><strong>{{ fleet|length }}</strong><span>Fleet units</span><small>Feeds matching engine</small></article>
+    <article class="ff2-metric"><div class="icon ffn-icon-route"></div><strong>{{ pending|length }}</strong><span>Pending responses</span><small>12h SLA window</small></article>
+    <article class="ff2-metric"><div class="icon ffn-icon-wallet"></div><strong>{{ rate_cards|length }}</strong><span>Rate cards</span><small>Used for quoting</small></article>
+  </section>
+
+  <div class="ff2-grid">
+    <section class="panel">
+      <div class="ff2-section-title"><div><h2>Jobs needing attention</h2><p>Accept/reject before SLA expires. Acceptance creates a PO and moves the job to dispatch.</p></div></div>
+      <div class="ff2-stack">
+      {% for b in pending %}
+        <div class="ff2-job-card">
+          <div><strong>{{ b.ref }} - {{ b.route }}</strong><p>{{ b.shipper }} - {{ b.supplierResponseWindow }}</p><div class="ff2-tags"><span>PO on accept</span><span>Driver required</span></div></div>
+          <div class="ff2-action-row" style="margin:0"><form method="POST" action="{{ url_for('supplier.reject_booking', ref=b.ref) }}"><button class="ghost-button" type="submit">Reject</button></form><form method="POST" action="{{ url_for('supplier.accept_booking', ref=b.ref) }}"><button class="primary-button" type="submit">Accept</button></form></div>
+        </div>
+      {% else %}<div class="empty-card">No pending bookings. New accepted quotes will appear here.</div>{% endfor %}
+      </div>
+    </section>
+
+    <aside class="ff2-stack">
+      <section class="panel"><div class="ff2-section-title"><div><h2>Fleet readiness</h2><p>Images help dispatch choose the right vehicle faster.</p></div><a class="ghost-button" href="{{ url_for('supplier.fleet') }}">Fleet →</a></div>
+        <div class="ff2-vehicle-row" style="grid-auto-columns:minmax(170px,210px)">
+          {% for v in fleet %}
+          {% set t = (v.type or '')|lower %}
+          {% set img = 'superlink.jpg' if 'super' in t else 'curtainsider.jpg' if 'curtain' in t or 'taut' in t else 'refrigerated-truck.jpg' if 'reefer' in t or 'refriger' in t else 'bakkie-ldv.jpg' if 'bakkie' in t or 'ldv' in t else 'panel-van.jpg' if 'van' in t else 'four-ton.jpg' if '4' in t or 'ton' in t else 'flatbed.jpg' %}
+          <article class="ff2-vehicle-card"><div class="ff2-vehicle-img"><img src="{{ url_for('static', filename='img/vehicles/' ~ img) }}" alt="{{ v.type }}"></div><div class="ff2-vehicle-body"><h3>{{ v.type }}</h3><p>{{ v.reg }}</p><div class="ff2-tags"><span>{{ v.availability }}</span><span>{{ v.payload }}</span></div></div></article>
+          {% else %}<div class="empty-card">No fleet units yet.</div>{% endfor %}
+        </div>
+      </section>
+      <section class="panel"><div class="ff2-section-title"><div><h2>Rate cards</h2><p>Current pricing rules used by the marketplace.</p></div></div>
+        <div class="ff2-stack">{% for r in rate_cards[:4] %}<div class="ff2-driver-card"><div class="ff2-avatar">R</div><div><strong>{{ r.route }}</strong><span>{{ r.vehicleType }} - Base R {{ "{:,.0f}".format(r.baseRate) }} - Fuel {{ r.fuelSurcharge }}%</span></div></div>{% else %}<div class="empty-card">No rate cards.</div>{% endfor %}</div>
+      </section>
+    </aside>
+  </div>
+</div>
+{% endblock %}

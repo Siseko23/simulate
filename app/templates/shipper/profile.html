@@ -1,0 +1,94 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="stack page-space">
+  <div class="topbar">
+    <div>
+      <p class="eyebrow">Shipper portal</p>
+      <h1>Company profile</h1>
+      <p class="topbar-copy">Keep your company details current - this information appears on quotes and invoices.</p>
+    </div>
+  </div>
+
+  <div class="grid two-up">
+    <section class="panel">
+      <div class="panel-head"><h2>Company details</h2></div>
+      <form method="POST">
+        <div class="form-grid">
+          <label>Company name<input name="company_name" value="{{ shipper.company_name or '' }}"/></label>
+          <label>VAT number<input name="vat_number" value="{{ shipper.vat_number or '' }}"/></label>
+          <label>Industry<input name="industry" value="{{ shipper.industry or '' }}" placeholder="e.g. Retail, Manufacturing"/></label>
+          <label>Phone<input name="phone" value="{{ current_user.phone or '' }}"/></label>
+          <label class="form-span">Address<input name="address" value="{{ shipper.address or '' }}"/></label>
+          <label>City<input name="city" value="{{ shipper.city or '' }}"/></label>
+          <label>Province<input name="province" value="{{ shipper.province or '' }}"/></label>
+        </div>
+        <button type="submit" class="primary-button wide-button" style="margin-top:1rem">Save changes</button>
+      </form>
+    </section>
+
+    <div class="stack">
+      <section class="panel">
+        <div class="panel-head"><h2>Account summary</h2></div>
+        {% for label, val in [
+          ('Account type', shipper.account_type),
+          ('Email', current_user.email),
+          ('Member since', shipper.created_at.strftime('%d %b %Y') if shipper.created_at else '-'),
+          ('Health score', (shipper.health_score|string) + '/100'),
+        ] %}
+        <div style="display:flex;justify-content:space-between;padding:.45rem 0;border-bottom:1px solid var(--line);font-size:.88rem">
+          <span class="muted">{{ label }}</span><strong>{{ val }}</strong>
+        </div>
+        {% endfor %}
+      </section>
+
+      <section class="panel">
+        <div class="panel-head"><h2>Compliance documents</h2></div>
+        <form method="POST" action="{{ url_for('shipper.upload_profile_doc') }}" enctype="multipart/form-data" style="margin-bottom:1rem">
+          <div class="form-grid compact-two">
+            <select name="name" required>
+              <option value="">Select document...</option>
+              <option>CIPC registration</option>
+              <option>Tax clearance certificate</option>
+              <option>Proof of address</option>
+            </select>
+            <input type="file" name="file" accept=".pdf,.jpg,.png"/>
+          </div>
+          <button type="submit" class="ghost-button" style="margin-top:.6rem">Upload</button>
+        </form>
+        {% for d in documents %}
+        <div style="display:flex;justify-content:space-between;align-items:center;padding:.4rem 0;border-bottom:1px dashed var(--line);font-size:.86rem">
+          <span>{{ d.name }}</span>
+          <div style="display:flex;gap:.4rem;align-items:center">
+            <a href="{{ url_for('shipper.download_profile_doc', doc_id=d.id) }}" class="ghost-button" style="padding:.22rem .55rem;font-size:.72rem;text-decoration:none">View</a>
+            <span class="pill" style="font-size:.72rem;font-weight:700;padding:.2rem .6rem;border-radius:999px;
+              {% if d.status=='Verified' %}background:#dcfce7;color:#166534{% else %}background:#dbeafe;color:#1e40af{% endif %}">{{ d.status }}</span>
+          </div>
+        </div>
+        {% else %}
+        <p class="muted" style="font-size:.85rem">No documents uploaded.</p>
+        {% endfor %}
+      </section>
+    </div>
+  </div>
+
+  {# -- FINANCE CONTACT (POD invoice notifications) -- #}
+  <section class="panel" style="max-width:640px">
+    <div class="panel-head">
+      <h2>Finance contact</h2>
+      <p>This person is notified by email when a QR POD is scanned and an invoice is generated.</p>
+    </div>
+    <form method="POST" action="{{ url_for('shipper.update_finance_contact') }}">
+      <div class="form-grid">
+        <label>Finance contact name
+          <input name="finance_contact_name" value="{{ shipper.finance_contact_name or '' }}" placeholder="e.g. Thandi Mokoena"/>
+        </label>
+        <label>Finance contact email
+          <input name="finance_contact_email" type="email" value="{{ shipper.finance_contact_email or '' }}" placeholder="finance@yourcompany.co.za"/>
+        </label>
+      </div>
+      <button type="submit" class="primary-button" style="margin-top:1rem">Save finance contact</button>
+    </form>
+  </section>
+
+</div>
+{% endblock %}

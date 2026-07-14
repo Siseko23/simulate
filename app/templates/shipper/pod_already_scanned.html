@@ -1,0 +1,9 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="stack page-space" style="max-width:480px;margin:0 auto;text-align:center">
+  <div style="margin:2rem auto;width:80px;height:80px;border-radius:50%;background:rgba(192,57,43,.1);display:grid;place-items:center;font-size:2.5rem">Warning</div>
+  <h1>Already Scanned</h1>
+  <p class="muted">This POD QR code for booking <strong>{{ booking.ref }}</strong> has already been used to confirm delivery.</p>
+  <p style="font-size:.85rem;color:var(--muted)">If this is unexpected, please contact the shipper immediately.</p>
+</div>
+{% endblock %}

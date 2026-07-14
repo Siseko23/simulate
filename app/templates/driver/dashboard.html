@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="ff2-page">
+  {% set b = bookings[0] if bookings else none %}
+  <section class="ff2-hero">
+    <div class="ff2-hero-grid">
+      <div>
+        <span class="ff2-kicker">Driver job app</span>
+        <h1 class="ff2-title">Today's job. <span>One screen.</span></h1>
+        <p class="ff2-copy">Drivers need speed, not analytics. Navigate, scan QR, confirm collection, deliver, capture signature and upload POD.</p>
+      </div>
+      <div class="ff2-visual-card"><img src="{{ url_for('static', filename='img/ffn-warehouse-hero.png') }}" alt="Driver job"></div>
+    </div>
+  </section>
+
+  <div class="ff2-grid">
+    <section class="panel" style="max-width:520px;margin:auto;width:100%">
+      <div class="ff2-section-title"><div><h2>Active assignment</h2><p>Large actions for the driver on the road.</p></div></div>
+      {% if b %}
+      <div class="ff2-driver-card" style="margin-bottom:1rem"><div class="ff2-avatar">{{ driver.name[0] if driver.name else 'D' }}</div><div><strong>{{ driver.name }}</strong><span>{{ driver.vehicleReg }} - {{ driver.vehicleType }} - {{ driver.rating }}*</span></div></div>
+      <div class="ff2-job-card" style="grid-template-columns:1fr">
+        <div><strong>{{ b.ref }}</strong><p>{{ b.collectionAddress or b.collectionCity }} → {{ b.deliveryAddress or b.deliveryCity }}</p><div class="ff2-tags"><span>{{ b.displayStatus or b.status }}</span><span>{{ b.pieces }} pallets</span></div></div>
+      </div>
+      <div class="ff2-action-row" style="display:grid;gap:.75rem;margin-top:1rem">
+        <a class="primary-button" href="https://www.google.com/maps/dir/?api=1&destination={{ b.collectionAddress|urlencode if b.collectionAddress else b.collectionCity|urlencode }}" target="_blank">Navigate to pickup</a>
+        <a class="ghost-button" href="https://www.google.com/maps/dir/?api=1&destination={{ b.deliveryAddress|urlencode if b.deliveryAddress else b.deliveryCity|urlencode }}" target="_blank">Navigate to delivery</a>
+        <form method="post" action="{{ url_for('driver.update_status', ref=b.ref) }}"><input type="hidden" name="status" value="Collected"><button class="ghost-button wide-button" type="submit">Scan QR - collected</button></form>
+        <a class="ghost-button" href="{{ url_for('driver.booking_detail', ref=b.ref) }}">Deliver / upload POD</a>
+      </div>
+      {% else %}
+      <div class="empty-card">No active job. When the supplier assigns you, pickup and delivery actions will appear here.</div>
+      {% endif %}
+    </section>
+
+    <aside class="ff2-stack">
+      <section class="panel"><div class="ff2-section-title"><div><h2>Driver summary</h2><p>Only performance that helps operations.</p></div></div><div class="ff2-metrics" style="grid-template-columns:repeat(2,1fr)"><article class="ff2-metric"><div class="icon ffn-icon-check"></div><strong>{{ completed }}</strong><span>Completed</span><small>Delivered jobs</small></article><article class="ff2-metric"><div class="icon ffn-icon-route"></div><strong>{{ driver.onTimeRate }}%</strong><span>On-time</span><small>Demo performance</small></article></div></section>
+      <section class="panel"><div class="ff2-section-title"><div><h2>Assigned jobs</h2><p>All current driver jobs.</p></div></div><div class="ff2-stack">{% for job in bookings %}<div class="ff2-job-card"><div><strong>{{ job.ref }}</strong><p>{{ job.collectionCity }} → {{ job.deliveryCity }} - {{ job.status }}</p></div><a class="ghost-button" href="{{ url_for('driver.booking_detail', ref=job.ref) }}">Open</a></div>{% else %}<div class="empty-card">No jobs assigned.</div>{% endfor %}</div></section>
+    </aside>
+  </div>
+</div>
+{% endblock %}

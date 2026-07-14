@@ -1,0 +1,82 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="stack page-space" style="max-width:750px;margin:0 auto">
+  <div class="topbar">
+    <div>
+      <p class="eyebrow">Waybill</p>
+      <h1>{{ booking.ref }}</h1>
+    </div>
+    <button onclick="window.print()" class="ghost-button">Print Print</button>
+  </div>
+
+  <section class="panel" style="padding:1.5rem">
+    <div style="display:flex;justify-content:space-between;border-bottom:2px solid var(--line);padding-bottom:1rem;margin-bottom:1rem">
+      <div>
+        <strong style="font-size:1.2rem">FreightFlow Nexus</strong>
+        <p class="muted" style="margin:.2rem 0 0;font-size:.85rem">Waybill / Delivery Note</p>
+      </div>
+      <div style="text-align:right">
+        <p style="margin:0;font-weight:700">{{ booking.ref }}</p>
+        <p class="muted" style="font-size:.85rem">{{ booking.created_at.strftime('%d %b %Y') if booking.created_at else '' }}</p>
+      </div>
+    </div>
+
+    {% if booking.is_fragile %}
+    <div style="display:flex;align-items:center;gap:1rem;border:3px dashed #e53e3e;border-radius:14px;padding:.9rem 1.2rem;margin-bottom:1.2rem;background:linear-gradient(135deg,var(--surface)5f5,#fed7d7)">
+      <div style="text-align:center;min-width:70px">
+        <div style="font-size:2.5rem;line-height:1"></div>
+        <div style="font-size:.6rem;font-weight:900;letter-spacing:.12em;color:#c53030;margin-top:.2rem;text-transform:uppercase">FRAGILE</div>
+      </div>
+      <div style="border-left:2px solid #e53e3e;padding-left:1rem;flex:1">
+        <p style="margin:0;font-size:1rem;font-weight:800;color:#c53030;letter-spacing:.05em;text-transform:uppercase">Warning Handle with Extreme Care</p>
+        <p style="margin:.25rem 0 0;font-size:.83rem;color:#742a2a">This shipment contains fragile items. Do not stack, drop, or tilt. Keep upright at all times.</p>
+      </div>
+      <div style="text-align:center;min-width:70px">
+        <div style="font-size:2.5rem;line-height:1"></div>
+        <div style="font-size:.6rem;font-weight:900;letter-spacing:.12em;color:#c53030;margin-top:.2rem;text-transform:uppercase">FRAGILE</div>
+      </div>
+    </div>
+    {% endif %}
+
+    <div class="grid two-up" style="margin-bottom:1rem">
+      <div>
+        <p class="eyebrow">Collection</p>
+        <p style="margin:.2rem 0;font-weight:600">{{ booking.collection_address or '-' }}</p>
+        <p class="muted" style="font-size:.85rem">{{ booking.collection_city or '' }}</p>
+        <p class="muted" style="font-size:.85rem">Contact: {{ booking.collection_contact or '-' }} {{ booking.collection_phone or '' }}</p>
+      </div>
+      <div>
+        <p class="eyebrow">Delivery</p>
+        <p style="margin:.2rem 0;font-weight:600">{{ booking.delivery_address or '-' }}</p>
+        <p class="muted" style="font-size:.85rem">{{ booking.delivery_city or '' }}</p>
+        <p class="muted" style="font-size:.85rem">Contact: {{ booking.delivery_contact or '-' }} {{ booking.delivery_phone or '' }}</p>
+      </div>
+    </div>
+
+    <table style="width:100%;border-collapse:collapse;margin:1rem 0">
+      <tr style="border-bottom:1px solid var(--line)"><td style="padding:.4rem 0;color:var(--muted)">Commodity</td><td style="text-align:right">{{ booking.commodity or '-' }}</td></tr>
+      <tr style="border-bottom:1px solid var(--line)"><td style="padding:.4rem 0;color:var(--muted)">Pieces</td><td style="text-align:right">{{ booking.pieces or '-' }}</td></tr>
+      <tr style="border-bottom:1px solid var(--line)"><td style="padding:.4rem 0;color:var(--muted)">Total weight</td><td style="text-align:right">{{ booking.total_weight_kg or '-' }} kg</td></tr>
+      <tr style="border-bottom:1px solid var(--line)"><td style="padding:.4rem 0;color:var(--muted)">Vehicle type</td><td style="text-align:right">{{ booking.vehicle_type_req or '-' }}</td></tr>
+      <tr style="border-bottom:1px solid var(--line)"><td style="padding:.4rem 0;color:var(--muted)">Carrier</td><td style="text-align:right">{{ booking.supplier.company_name if booking.supplier else '-' }}</td></tr>
+      {% if booking.driver %}
+      <tr style="border-bottom:1px solid var(--line)"><td style="padding:.4rem 0;color:var(--muted)">Driver</td><td style="text-align:right">{{ booking.driver.name }}</td></tr>
+      {% endif %}
+      {% if booking.vehicle %}
+      <tr style="border-bottom:1px solid var(--line)"><td style="padding:.4rem 0;color:var(--muted)">Vehicle reg</td><td style="text-align:right">{{ booking.vehicle.reg_number }}</td></tr>
+      {% endif %}
+    </table>
+
+    <div style="display:flex;justify-content:space-between;margin-top:2rem;padding-top:1rem;border-top:1px solid var(--line)">
+      <div>
+        <p class="muted" style="font-size:.8rem">Sender signature</p>
+        <div style="border-bottom:1px solid var(--line);width:180px;height:40px"></div>
+      </div>
+      <div>
+        <p class="muted" style="font-size:.8rem">Receiver signature</p>
+        <div style="border-bottom:1px solid var(--line);width:180px;height:40px"></div>
+      </div>
+    </div>
+  </section>
+</div>
+{% endblock %}

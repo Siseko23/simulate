@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="ff2-page">
+  <section class="ff2-hero">
+    <div class="ff2-hero-grid">
+      <div><span class="ff2-kicker">Admin control tower</span><h1 class="ff2-title">Spot exceptions before they <span>become losses.</span></h1><p class="ff2-copy">Admin should start with live operations, SLA breaches, missing PODs, pending payouts and supplier risk.</p><div class="ff2-action-row"><a class="primary-button" href="{{ url_for('admin.payouts') }}">Payout queue</a><a class="ghost-button" href="{{ url_for('admin.bookings') }}">All bookings</a></div></div>
+      <div class="ff2-visual-card"><img src="{{ url_for('static', filename='img/ffn-warehouse-hero.png') }}" alt="Control tower"></div>
+    </div>
+  </section>
+  <section class="ff2-metrics"><article class="ff2-metric"><div class="icon"></div><strong>{{ active }}</strong><span>Active loads</span><small>Moving or assigned</small></article><article class="ff2-metric"><div class="icon ffn-icon-shipment"></div><strong>{{ total_bookings }}</strong><span>Total bookings</span><small>Platform volume</small></article><article class="ff2-metric"><div class="icon ffn-icon-check"></div><strong>{{ delivered_today }}</strong><span>Delivered today</span><small>Completed loads</small></article><article class="ff2-metric"><div class="icon ffn-icon-wallet"></div><strong>{{ pending_approval }}</strong><span>Supplier approvals</span><small>Waiting review</small></article><article class="ff2-metric"><div class="icon ffn-icon-wallet"></div><strong>{{ zar(platform_revenue) }}</strong><span>Revenue</span><small>Platform fees</small></article></section>
+  <div class="ff2-grid">
+    <section class="panel"><div class="ff2-section-title"><div><h2>Live operations</h2><p>Recent bookings and statuses.</p></div></div><div class="ff2-stack">{% for b in recent_bookings %}<div class="ff2-job-card"><div><strong>{{ b.ref }} - {{ b.route }}</strong><p>{{ b.supplier }} - Driver {{ b.driverName }}</p><div class="ff2-tags"><span>{{ b.displayStatus or b.status }}</span></div></div><a class="ghost-button" href="{{ url_for('admin.bookings') }}">Review</a></div>{% else %}<div class="empty-card">No bookings yet.</div>{% endfor %}</div></section>
+    <aside class="ff2-stack"><section class="panel"><div class="ff2-section-title"><div><h2>Exceptions</h2><p>What needs attention now.</p></div></div><div class="ff2-timeline"><div class="ff2-step active"><i></i><strong>Supplier SLA watch</strong><span>Pending response / driver assignment</span></div><div class="ff2-step"><i></i><strong>Missing POD</strong><span>Blocks payout</span></div><div class="ff2-step"><i></i><strong>Pending payout</strong><span>Finance verification required</span></div></div></section><section class="panel"><div class="ff2-section-title"><div><h2>Audit activity</h2></div></div><div class="ff2-stack">{% for log in recent_logs[:6] %}<div class="ff2-driver-card"><div class="ff2-avatar">A</div><div><strong>{{ log.action }}</strong><span>{{ log.entity_type }} {{ log.entity_id }} - {{ log.created_at.strftime('%d %b %H:%M') if log.created_at else '' }}</span></div></div>{% else %}<div class="empty-card">No audit logs.</div>{% endfor %}</div></section></aside>
+  </div>
+</div>
+{% endblock %}

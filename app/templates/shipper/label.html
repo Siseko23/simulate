@@ -1,0 +1,62 @@
+{% extends "base.html" %}
+{% block content %}
+<style>
+@media print{body *{visibility:hidden}.label-sheet,.label-sheet *{visibility:visible}.label-sheet{position:fixed;inset:0;margin:0!important;box-shadow:none!important}.no-print{display:none!important}}
+.label-sheet{max-width:820px;margin:1rem auto;background:var(--surface);border:3px solid #111827;border-radius:14px;box-shadow:0 12px 35px rgba(15,23,42,.12);font-family:Inter,Arial,sans-serif;color:#111827;overflow:hidden}
+.label-top{display:flex;justify-content:space-between;gap:1rem;align-items:center;background:#111827;color:var(--surface);padding:1rem 1.2rem}.label-brand{font-size:1.25rem;font-weight:900;letter-spacing:.02em}.label-ref{text-align:right}.label-ref strong{font-size:1.2rem}.label-body{padding:1.2rem}.label-grid{display:grid;grid-template-columns:1fr 1fr;gap:1rem}.label-box{border:1.5px solid #cbd5e1;border-radius:12px;padding:1rem;min-height:130px}.label-key{font-size:.72rem;text-transform:uppercase;letter-spacing:.08em;color:#64748b;font-weight:800;margin-bottom:.35rem}.label-val{font-size:1rem;font-weight:800;margin:.15rem 0}.label-muted{font-size:.88rem;color:#475569;margin:.2rem 0}.cargo-row{display:grid;grid-template-columns:repeat(4,1fr);gap:.7rem;margin:1rem 0}.cargo-cell{border:1.5px solid #cbd5e1;border-radius:12px;padding:.8rem;text-align:center}.cargo-cell strong{font-size:1.3rem;display:block}.fragile{border:3px dashed #dc2626;background:#fef2f2;color:#991b1b;border-radius:12px;padding:1rem;margin:1rem 0;text-align:center;font-weight:900;font-size:1.1rem;letter-spacing:.08em}.qr-demo{width:94px;height:94px;border:2px solid #111827;display:grid;grid-template-columns:repeat(7,1fr);gap:2px;padding:5px;background:var(--surface)}.qr-demo span:nth-child(odd),.qr-demo span:nth-child(4n){background:#111827}.sign-grid{display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-top:1.2rem}.sign-box{border-top:2px solid #111827;padding-top:.4rem;font-size:.8rem;color:#475569}.print-actions{max-width:820px;margin:1rem auto;display:flex;gap:.7rem;justify-content:flex-end}
+</style>
+<div class="print-actions no-print">
+  <a href="{{ url_for('shipper.booking_detail', ref=booking.ref) }}" class="ghost-button">← Booking details</a>
+  <button onclick="window.print()" class="primary-button">Print Print cargo label</button>
+</div>
+<section class="label-sheet">
+  <div class="label-top">
+    <div><div class="label-brand">FreightFlow Nexus</div><div style="font-size:.8rem;opacity:.75">Cargo label / pallet sticker</div></div>
+    <div class="label-ref"><div style="font-size:.75rem;opacity:.75;text-transform:uppercase;letter-spacing:.08em">Booking Ref</div><strong>{{ booking.ref }}</strong></div>
+  </div>
+  <div class="label-body">
+    {% if booking.is_fragile %}<div class="fragile">Warning FRAGILE / HANDLE WITH CARE / DO NOT STACK</div>{% endif %}
+    <div class="label-grid">
+      <div class="label-box">
+        <div class="label-key">Pickup / collection</div>
+        <div class="label-val">{{ booking.collection_address or '-' }}</div>
+        <p class="label-muted">{{ booking.collection_city or '' }}</p>
+        <p class="label-muted"><strong>Pickup date/time:</strong> {{ booking.collection_date.strftime('%d %b %Y') if booking.collection_date else 'To be confirmed' }}</p>
+        <p class="label-muted"><strong>Pickup contact:</strong> {{ booking.collection_contact or '-' }} - {{ booking.collection_phone or '' }}</p>
+      </div>
+      <div class="label-box">
+        <div class="label-key">Drop-off / delivery</div>
+        <div class="label-val">{{ booking.delivery_address or '-' }}</div>
+        <p class="label-muted">{{ booking.delivery_city or '' }}</p>
+        <p class="label-muted"><strong>Delivery date/time:</strong> {{ booking.delivery_date.strftime('%d %b %Y') if booking.delivery_date else 'To be confirmed' }}</p>
+        <p class="label-muted"><strong>Delivery contact:</strong> {{ booking.delivery_contact or '-' }} - {{ booking.delivery_phone or '' }}</p>
+      </div>
+    </div>
+
+    <div class="cargo-row">
+      <div class="cargo-cell"><strong>{{ booking.pieces or 0 }}</strong><span>pallets/parcels</span></div>
+      <div class="cargo-cell"><strong>{{ booking.weight_per_item_kg or 0 }} kg</strong><span>weight / item</span></div>
+      <div class="cargo-cell"><strong>{{ booking.total_weight_kg or 0 }} kg</strong><span>total weight</span></div>
+      <div class="cargo-cell"><strong>{{ booking.vehicle_type_req or '-' }}</strong><span>vehicle</span></div>
+    </div>
+
+    <div class="label-grid" style="align-items:center">
+      <div class="label-box" style="min-height:auto">
+        <div class="label-key">Shipment information</div>
+        <p class="label-muted"><strong>Commodity:</strong> {{ booking.commodity or '-' }}</p>
+        <p class="label-muted"><strong>Selected supplier:</strong> {{ booking.supplier.company_name if booking.supplier else 'Awaiting supplier selection' }}</p>
+        <p class="label-muted"><strong>Special instructions:</strong> {{ booking.notes or ('Fragile cargo' if booking.is_fragile else 'None') }}</p>
+      </div>
+      <div style="display:flex;gap:1rem;align-items:center;justify-content:flex-end">
+        <div class="qr-demo" aria-label="Demo QR code">{% for i in range(49) %}<span></span>{% endfor %}</div>
+        <div style="max-width:260px"><div class="label-key">QR-linked workflow</div><p class="label-muted">Use this label on every pallet/parcel. Collection scan: {{ url_for('public.qr_scan', ref=booking.ref, event='collect', _external=True) }}<br>Delivery scan: {{ url_for('public.qr_scan', ref=booking.ref, event='deliver', _external=True) }}</p></div>
+      </div>
+    </div>
+
+    <div class="sign-grid">
+      <div class="sign-box">Sender / warehouse signature, name, date, time</div>
+      <div class="sign-box">Receiver signature, name, date, time</div>
+    </div>
+  </div>
+</section>
+{% endblock %}
